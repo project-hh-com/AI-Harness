@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "ai-harness",
+  "displayName": "AI-Harness · Universal Multi-Agent Pipeline",
+  "version": "1.0.0",
+  "description": "Framework-agnostic 9-agent implementation pipeline. One /implement command runs input-refiner→planner→implementer→QA→release automatically. Works with Next.js, React Native, plain Node, Python, Go, and more.",
+  "author": {
+    "name": "AI-Harness"
+  },
+  "keywords": ["multi-agent", "pipeline", "qa", "code-review", "planning", "universal"],
+  "agents": [
+    "./agents/input-refiner.md",
+    "./agents/planner.md",
+    "./agents/implementer.md",
+    "./agents/functional-qa.md",
+    "./agents/design-qa.md",
+    "./agents/visual-qa.md",
+    "./agents/release.md",
+    "./agents/tracking-implementer.md",
+    "./agents/tracking-qa.md"
+  ],
+  "skills": "./skills/"
+}

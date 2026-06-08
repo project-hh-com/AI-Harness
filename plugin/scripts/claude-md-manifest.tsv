@@ -1,0 +1,48 @@
+# AI-Harness · 범용 계층 CLAUDE.md 매니페스트
+# 형식: <상대경로(디렉토리)> | <tier> | <영역명> | <책임 한 줄>
+# - 상대경로는 타겟 레포 루트 기준. "." 은 루트.
+# - generate-claude-md.sh 가 이 매니페스트를 읽어, 디렉토리가 실제 존재하고
+#   CLAUDE.md 가 없을 때만 생성한다 (기존 파일 절대 덮어쓰지 않음).
+# - project_type 자동 감지 후 실제 존재하는 디렉토리에만 생성 (없으면 skip).
+# - 총 항목: 루트 1 + 공통 레이어 구조 (실제 존재하는 디렉토리만 생성됨)
+
+# ── 공통 (모든 프로젝트) ──────────────────────────────────────────────
+. | root | 프로젝트 루트 | TL;DR · Hard Stops · Always · Task→진입 규칙 · 프로젝트 구조 · 개발 워크플로우
+
+# ── Next.js / React ──────────────────────────────────────────────────
+src/components | component-root | 컴포넌트 루트 | 레벨 분류 원칙, 단방향 의존
+src/components/common | component-common | 공용 컴포넌트 | 도메인 무관 공용 UI
+src/components/ui | component-common | UI 기본 요소 | shadcn/ui 등 기본 요소
+src/app | page-root | App Router 루트 | 라우트·레이아웃·미들웨어 구조
+src/pages | page-root | Pages Router 루트 | 라우트·레이아웃·_app 구조
+src/hooks | logic | 훅 루트 | custom hooks, data fetching 규칙
+src/lib | logic | 라이브러리 | API 클라이언트, 유틸 규칙
+src/services | logic | 서비스 레이어 | API 호출·비즈니스 로직 집약
+src/utils | logic | 유틸 루트 | 순수 함수, 포맷·검증 유틸
+src/types | data | 타입 정의 | 공유 타입·인터페이스·Zod 스키마
+src/store | data | 전역 상태 | Zustand/Jotai/Redux 상태 관리
+src/styles | style | 스타일 루트 | CSS 변수·Tailwind 테마·글로벌 스타일
+
+# ── React Native / Expo ───────────────────────────────────────────────
+screens | page-root | 스크린 루트 | 화면 컴포넌트 · 네비게이션 구조
+components | component-root | 컴포넌트 루트 | 공용·도메인 분리 원칙
+navigation | logic | 네비게이션 | 스택·탭·드로어 설정
+store | data | 전역 상태 | 상태 관리 패턴
+
+# ── Python ────────────────────────────────────────────────────────────
+src | code-root | 소스 루트 | 모듈 구조·import 규칙
+tests | test-root | 테스트 루트 | pytest 구조·fixture 패턴
+app | code-root | 앱 루트 | FastAPI/Django 라우트·뷰 구조
+api | logic | API 레이어 | 엔드포인트·스키마·의존성 주입
+models | data | 모델 레이어 | ORM 모델·Pydantic 스키마
+
+# ── Go ────────────────────────────────────────────────────────────────
+cmd | code-root | 커맨드 루트 | main 패키지·진입점
+internal | logic | 내부 패키지 | 외부 노출 금지 패키지
+pkg | logic | 공개 패키지 | 외부 사용 가능 패키지
+handler | logic | 핸들러 레이어 | HTTP 핸들러 패턴
+
+# ── 공통 (있는 경우) ──────────────────────────────────────────────────
+tests | test-root | 테스트 루트 | 테스트 구조·팩토리·픽스처 패턴
+__tests__ | test-root | 테스트 루트 | Jest 테스트 구조
+docs | docs-root | 문서 루트 | 문서 작성 규칙
