@@ -22,7 +22,16 @@
     "tdad",
     "impact-radius"
   ],
-  "agents": "agents/",
-  "skills": "skills/",
-  "hooks": "hooks/hooks.json"
+  "agents": [
+    "./agents/input-refiner.md",
+    "./agents/planner.md",
+    "./agents/implementer.md",
+    "./agents/functional-qa.md",
+    "./agents/design-qa.md",
+    "./agents/visual-qa.md",
+    "./agents/tracking-implementer.md",
+    "./agents/tracking-qa.md",
+    "./agents/release.md"
+  ],
+  "skills": "./skills/"
 }
