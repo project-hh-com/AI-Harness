@@ -5,11 +5,11 @@
   "version": "1.0.0",
   "description": "Framework-agnostic 9-agent pipeline: input-refiner → planner → implementer → QA → release. One /implement command covers planning, coding, 6-gate QA, and Draft PR creation. Works with Next.js, React Native, Python, Go, Rust, Java, and more.",
   "author": {
-    "name": "AI-Harness",
+    "name": "Dahee",
     "email": "dahee86686@gmail.com"
   },
-  "homepage": "https://github.com/hwangdahee/ai-harness",
-  "repository": "https://github.com/hwangdahee/ai-harness",
+  "homepage": "https://github.com/project-hh-com/AI-Harness",
+  "repository": "https://github.com/project-hh-com/AI-Harness",
   "license": "MIT",
   "keywords": [
     "multi-agent",

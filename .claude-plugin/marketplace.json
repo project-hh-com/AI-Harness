@@ -3,7 +3,7 @@
   "name": "ai-harness",
   "description": "Universal multi-agent development pipeline for Claude Code. One /implement command runs planning, coding, 6-gate QA, and Draft PR creation — works with any framework.",
   "owner": {
-    "name": "AI-Harness",
+    "name": "Dahee",
     "email": "dahee86686@gmail.com"
   },
   "version": "1.0.0",
@@ -18,11 +18,11 @@
       "description": "9-agent pipeline: natural language → planning → code → 6-gate QA → Draft PR. Framework-agnostic: Next.js, React Native, Python, Go, Rust, Java, and more.",
       "version": "1.0.0",
       "author": {
-        "name": "AI-Harness",
+        "name": "Dahee",
         "email": "dahee86686@gmail.com"
       },
-      "homepage": "https://github.com/hwangdahee/ai-harness",
-      "repository": "https://github.com/hwangdahee/ai-harness",
+      "homepage": "https://github.com/project-hh-com/AI-Harness",
+      "repository": "https://github.com/project-hh-com/AI-Harness",
       "license": "MIT",
       "category": "workflow",
       "keywords": [
