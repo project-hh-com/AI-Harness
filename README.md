@@ -86,16 +86,80 @@ Gate 6 automatically detects infinite-call loops, cache key collisions, and dupl
 
 ### Supported Stacks
 
+**JavaScript / TypeScript**
+
 | Stack | Auto-detected by | Lint | Test |
 |---|---|---|---|
 | Next.js | `"next"` in package.json | `next lint` | `jest` / `vitest` |
 | React Native | `"expo"` in package.json | `eslint` | `jest` |
 | React | `"react"` in package.json | `eslint` | `jest` / `vitest` |
-| Python | `pyproject.toml` / `requirements.txt` | `ruff` / `flake8` | `pytest` |
+| Vue | `"vue"` in package.json | `eslint` | `vitest` |
+| Nuxt | `"nuxt"` in package.json | `eslint` | `vitest` |
+| Angular | `"@angular/core"` in package.json | `ng lint` | `ng test` |
+| Svelte | `"svelte"` in package.json | `eslint` | `vitest` |
+| Astro | `"astro"` in package.json | `eslint` | `vitest` |
+| Remix | `"remix"` in package.json | `eslint` | `vitest` |
+| Gatsby | `"gatsby"` in package.json | `eslint` | `jest` |
+| Electron | `"electron"` in package.json | `eslint` | `jest` |
+| Node (server) | `express`/`fastify`/`koa` in package.json | `eslint` | `jest` / `vitest` |
+| Node | `package.json` (fallback) | `eslint` | `jest` / `vitest` |
+
+**Python**
+
+| Stack | Auto-detected by | Lint | Test |
+|---|---|---|---|
+| Django | `manage.py` or `django` in requirements | `ruff` / `flake8` | `pytest` / `manage.py test` |
+| Flask | `flask` in requirements | `ruff` / `flake8` | `pytest` |
+| FastAPI | `fastapi` in requirements | `ruff` / `flake8` | `pytest` |
+| Python (generic) | `pyproject.toml` / `setup.py` | `ruff` / `flake8` | `pytest` |
+
+**Go / Rust**
+
+| Stack | Auto-detected by | Lint | Test |
+|---|---|---|---|
 | Go | `go.mod` | `golangci-lint` | `go test ./...` |
 | Rust | `Cargo.toml` | `cargo clippy` | `cargo test` |
-| Java | `pom.xml` / `build.gradle` | `checkstyle` | `mvn test` |
-| Node | `package.json` | `eslint` | `jest` / `vitest` |
+
+**JVM**
+
+| Stack | Auto-detected by | Lint | Test |
+|---|---|---|---|
+| Spring Boot | `spring-boot` in pom.xml/build.gradle | `checkstyle` | `mvn test` / `gradle test` |
+| Java (Maven) | `pom.xml` | `checkstyle` | `mvn test` |
+| Java (Gradle) | `build.gradle` | `checkstyle` | `gradle test` |
+| Kotlin JVM | `kotlin` in build.gradle | `ktlint` | `gradle test` |
+| Android Kotlin | `com.android` + `kotlin` in build.gradle | `ktlint` + `lint` | `gradle testDebugUnitTest` |
+| Android Java | `com.android` in build.gradle | `lint` | `gradle testDebugUnitTest` |
+| JSP / Servlet | `javax.servlet` in pom.xml | `checkstyle` | `mvn test` |
+
+**Ruby / PHP**
+
+| Stack | Auto-detected by | Lint | Test |
+|---|---|---|---|
+| Rails | `rails` in Gemfile | `rubocop` | `rspec` / `rails test` |
+| Sinatra | `sinatra` in Gemfile | `rubocop` | `rspec` |
+| Ruby | `Gemfile` | `rubocop` | `rspec` |
+| Laravel | `laravel` in composer.json | `phpstan` | `phpunit` |
+| Symfony | `symfony` in composer.json | `phpstan` | `phpunit` |
+| WordPress | `wp-config.php` / composer | `phpcs` | `phpunit` |
+| PHP (generic) | `composer.json` | `phpcs` | `phpunit` |
+
+**Other Platforms**
+
+| Stack | Auto-detected by | Lint | Test |
+|---|---|---|---|
+| .NET / ASP.NET | `*.csproj` / `*.sln` | `dotnet format` | `dotnet test` |
+| Blazor | `.csproj` with Blazor | `dotnet format` | `dotnet test` |
+| Swift / iOS | `Package.swift` / `*.xcodeproj` | `swiftlint` | `swift test` |
+| Flutter | `pubspec.yaml` + `flutter` | `flutter analyze` | `flutter test` |
+| Dart | `pubspec.yaml` | `dart analyze` | `dart test` |
+| Phoenix | `mix.exs` + `phoenix` | `mix credo` | `mix test` |
+| Elixir | `mix.exs` | `mix credo` | `mix test` |
+| Haskell | `stack.yaml` / `cabal.project` | `hlint` | `stack test` |
+| C++ (CMake) | `CMakeLists.txt` | `clang-tidy` | `ctest` |
+| C++ (Make) | `Makefile` + `.cpp` | `clang-tidy` | `make test` |
+| C (Make) | `Makefile` | `clang-tidy` | `make test` |
+| Terraform | `*.tf` files | `terraform fmt -check` | `terraform validate` |
 
 ### Safety Guardrails
 
@@ -197,16 +261,19 @@ Gate 6은 SWR 훅 · 전역 스토어 · API 클라이언트 변경 시 무한 �
 
 ### 지원 스택
 
-| 언어/프레임워크 | 자동 감지 기준 | Lint | Test |
-|---|---|---|---|
-| Next.js | `"next"` in package.json | `next lint` | `jest` / `vitest` |
-| React Native | `"expo"` in package.json | `eslint` | `jest` |
-| React | `"react"` in package.json | `eslint` | `jest` / `vitest` |
-| Python | `pyproject.toml` / `requirements.txt` | `ruff` / `flake8` | `pytest` |
-| Go | `go.mod` | `golangci-lint` | `go test ./...` |
-| Rust | `Cargo.toml` | `cargo clippy` | `cargo test` |
-| Java | `pom.xml` / `build.gradle` | `checkstyle` | `mvn test` |
-| Node | `package.json` | `eslint` | `jest` / `vitest` |
+**JavaScript / TypeScript**: Next.js, React Native, React, Vue, Nuxt, Angular, Svelte, Astro, Remix, Gatsby, Electron, Node.js (server/generic)
+
+**Python**: Django, Flask, FastAPI, Python (generic)
+
+**Go / Rust**: Go, Rust
+
+**JVM**: Spring Boot, Java (Maven/Gradle), Kotlin JVM, Android Kotlin, Android Java, JSP/Servlet
+
+**Ruby / PHP**: Rails, Sinatra, Ruby, Laravel, Symfony, WordPress, PHP (generic)
+
+**기타**: .NET/ASP.NET/Blazor, Swift/iOS, Flutter, Dart, Phoenix, Elixir, Haskell, C++/CMake, C, Terraform
+
+모든 스택은 프로젝트 파일(`package.json`, `pom.xml`, `go.mod`, `Cargo.toml` 등)을 분석해 자동 감지됩니다.
 
 ### 안전 보호 장치
 

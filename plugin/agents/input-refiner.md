@@ -25,19 +25,111 @@ Step 8 · 자기 채점 — self_score < 80 → Step 4 재진입
 
 ## 프로젝트 타입 자동 감지 (Step 1에서 수행)
 
-input-refiner는 타겟 레포를 조사해 프로젝트 타입을 결정한다:
+input-refiner는 타겟 레포를 조사해 프로젝트 타입을 결정한다.
+감지 우선순위: 구체적인 프레임워크 → 언어 런타임 → generic 순서.
 
 ```bash
-# 타입 감지 우선순위
 detect_project_type() {
-  [ -f "package.json" ] && grep -q '"next"' package.json && echo "nextjs" && return
-  [ -f "package.json" ] && grep -q '"expo"' package.json && echo "react-native" && return
-  [ -f "package.json" ] && grep -q '"react"' package.json && echo "react" && return
-  [ -f "pyproject.toml" ] || [ -f "setup.py" ] && echo "python" && return
+  # ── JavaScript / TypeScript ──────────────────────────────────────────
+  if [ -f "package.json" ]; then
+    grep -q '"next"'          package.json && echo "nextjs"        && return
+    grep -q '"expo"'          package.json && echo "react-native"  && return
+    grep -q '"@angular/core"' package.json && echo "angular"       && return
+    grep -q '"@vue/core"\|"vue"' package.json && echo "vue"        && return
+    grep -q '"svelte"'        package.json && echo "svelte"        && return
+    grep -q '"astro"'         package.json && echo "astro"         && return
+    grep -q '"nuxt"'          package.json && echo "nuxt"          && return
+    grep -q '"remix"'         package.json && echo "remix"         && return
+    grep -q '"gatsby"'        package.json && echo "gatsby"        && return
+    grep -q '"electron"'      package.json && echo "electron"      && return
+    grep -q '"react"'         package.json && echo "react"         && return
+    grep -q '"express"\|"fastify"\|"koa"\|"hapi"' package.json \
+                                            && echo "node-server"  && return
+    echo "node" && return
+  fi
+
+  # ── Python ───────────────────────────────────────────────────────────
+  if [ -f "manage.py" ] || ([ -f "requirements.txt" ] && grep -qi "django" requirements.txt 2>/dev/null); then
+    echo "django" && return
+  fi
+  if [ -f "requirements.txt" ] && grep -qi "flask" requirements.txt 2>/dev/null; then
+    echo "flask" && return
+  fi
+  if [ -f "requirements.txt" ] && grep -qi "fastapi" requirements.txt 2>/dev/null; then
+    echo "fastapi" && return
+  fi
+  [ -f "pyproject.toml" ] || [ -f "setup.py" ] || [ -f "requirements.txt" ] && echo "python" && return
+
+  # ── Go ───────────────────────────────────────────────────────────────
   [ -f "go.mod" ] && echo "go" && return
+
+  # ── Rust ─────────────────────────────────────────────────────────────
   [ -f "Cargo.toml" ] && echo "rust" && return
-  [ -f "pom.xml" ] || [ -f "build.gradle" ] && echo "java" && return
-  [ -f "package.json" ] && echo "node" && return
+
+  # ── JVM ──────────────────────────────────────────────────────────────
+  if [ -f "pom.xml" ]; then
+    grep -qi "spring-boot"    pom.xml && echo "spring-boot" && return
+    grep -qi "kotlin"         pom.xml && echo "kotlin-jvm"  && return
+    grep -qi "javax.servlet\|jakarta.servlet" pom.xml && echo "jsp-servlet" && return
+    echo "java-maven" && return
+  fi
+  if [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
+    grep -qi "spring-boot"    build.gradle build.gradle.kts 2>/dev/null && echo "spring-boot" && return
+    grep -qi "com.android"    build.gradle build.gradle.kts 2>/dev/null && {
+      grep -qi "kotlin"       build.gradle build.gradle.kts 2>/dev/null && echo "android-kotlin" && return
+      echo "android-java" && return
+    }
+    grep -qi "kotlin"         build.gradle build.gradle.kts 2>/dev/null && echo "kotlin-jvm" && return
+    echo "java-gradle" && return
+  fi
+
+  # ── Ruby ─────────────────────────────────────────────────────────────
+  if [ -f "Gemfile" ]; then
+    grep -qi "rails"  Gemfile && echo "rails"  && return
+    grep -qi "sinatra" Gemfile && echo "sinatra" && return
+    echo "ruby" && return
+  fi
+
+  # ── PHP ──────────────────────────────────────────────────────────────
+  if [ -f "composer.json" ]; then
+    grep -qi "laravel"   composer.json && echo "laravel"   && return
+    grep -qi "symfony"   composer.json && echo "symfony"   && return
+    grep -qi "wordpress" composer.json && echo "wordpress" && return
+    echo "php" && return
+  fi
+  [ -f "wp-config.php" ] && echo "wordpress" && return
+
+  # ── .NET ─────────────────────────────────────────────────────────────
+  ls *.csproj *.sln 2>/dev/null | head -1 | grep -q '.' && {
+    grep -qi "blazor\|razor"  *.csproj 2>/dev/null && echo "dotnet-blazor" && return
+    grep -qi "aspnet\|aspnetcore\|microsoft.aspnetcore" *.csproj 2>/dev/null && echo "dotnet-aspnet" && return
+    echo "dotnet" && return
+  }
+
+  # ── Swift / iOS / macOS ──────────────────────────────────────────────
+  [ -f "Package.swift" ] && echo "swift" && return
+  ls *.xcodeproj *.xcworkspace 2>/dev/null | head -1 | grep -q '.' && echo "swift" && return
+
+  # ── Dart / Flutter ───────────────────────────────────────────────────
+  [ -f "pubspec.yaml" ] && grep -q "flutter" pubspec.yaml && echo "flutter" && return
+  [ -f "pubspec.yaml" ] && echo "dart" && return
+
+  # ── Elixir ───────────────────────────────────────────────────────────
+  [ -f "mix.exs" ] && grep -qi "phoenix" mix.exs && echo "phoenix" && return
+  [ -f "mix.exs" ] && echo "elixir" && return
+
+  # ── Haskell ──────────────────────────────────────────────────────────
+  [ -f "stack.yaml" ] || [ -f "cabal.project" ] && echo "haskell" && return
+
+  # ── C / C++ ──────────────────────────────────────────────────────────
+  [ -f "CMakeLists.txt" ] && echo "cmake-cpp" && return
+  [ -f "Makefile" ] && grep -q "\.cpp\|\.cc\|\.cxx" Makefile 2>/dev/null && echo "cpp" && return
+  [ -f "Makefile" ] && echo "c-make" && return
+
+  # ── Terraform / IaC ──────────────────────────────────────────────────
+  ls *.tf 2>/dev/null | head -1 | grep -q '.' && echo "terraform" && return
+
+  # ── Generic fallback ─────────────────────────────────────────────────
   echo "generic"
 }
 ```
@@ -52,7 +144,7 @@ detect_project_type() {
 intent: "<1줄 정제된 의도>"
 type_hint: "<워딩수정|버그수정|리팩토링|디자인변경|새기능|성능최적화|문서|인프라>"
 confidence: high | medium | low
-project_type: "<nextjs|react-native|react|python|go|rust|java|node|generic>"
+project_type: "<nextjs|react-native|react|vue|nuxt|angular|svelte|astro|remix|gatsby|electron|node-server|node|django|flask|fastapi|python|go|rust|spring-boot|java-maven|java-gradle|kotlin-jvm|android-kotlin|android-java|jsp-servlet|rails|sinatra|ruby|laravel|symfony|wordpress|php|dotnet|dotnet-aspnet|dotnet-blazor|swift|flutter|dart|phoenix|elixir|haskell|cmake-cpp|cpp|c-make|terraform|generic>"
 figma_url: "<URL or null>"
 affected_area_hint: ["<경로 또는 모듈명>"]
 affected_files_hint: ["<구체 파일 경로>"]

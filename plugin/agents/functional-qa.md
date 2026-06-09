@@ -47,15 +47,61 @@ COMMITS=$(git rev-list --count HEAD~$WAVES..HEAD)
 LINT_CMD=$(grep 'lint=' .claude/plans/*.md | tail -1 | sed 's/.*lint=`\([^`]*\)`.*/\1/')
 
 case "$PROJECT_TYPE" in
-  nextjs)       ${LINT_CMD:-"npx next lint"} ;;
-  react-native) ${LINT_CMD:-"npx eslint src"} ;;
-  react)        ${LINT_CMD:-"npx eslint src"} ;;
-  python)       ${LINT_CMD:-"ruff check ."} || ${LINT_CMD:-"flake8 ."} ;;
-  go)           ${LINT_CMD:-"golangci-lint run"} ;;
-  rust)         ${LINT_CMD:-"cargo clippy -- -D warnings"} ;;
-  java)         ${LINT_CMD:-"mvn checkstyle:check"} ;;
-  node)         ${LINT_CMD:-"npx eslint src"} ;;
-  *)            [ -n "$LINT_CMD" ] && eval "$LINT_CMD" || echo "⚠️ lint 명령 미감지 — skip" ;;
+  # ── JS / TypeScript ──────────────────────────────────────────
+  nextjs)         ${LINT_CMD:-"npx next lint"} ;;
+  react-native)   ${LINT_CMD:-"npx eslint src"} ;;
+  react)          ${LINT_CMD:-"npx eslint src"} ;;
+  vue)            ${LINT_CMD:-"npx eslint src"} ;;
+  nuxt)           ${LINT_CMD:-"npx eslint src"} ;;
+  angular)        ${LINT_CMD:-"npx ng lint"} ;;
+  svelte)         ${LINT_CMD:-"npx eslint src"} ;;
+  astro)          ${LINT_CMD:-"npx eslint src"} ;;
+  remix)          ${LINT_CMD:-"npx eslint app"} ;;
+  gatsby)         ${LINT_CMD:-"npx eslint src"} ;;
+  electron)       ${LINT_CMD:-"npx eslint src"} ;;
+  node-server)    ${LINT_CMD:-"npx eslint src"} ;;
+  node)           ${LINT_CMD:-"npx eslint src"} ;;
+  # ── Python ───────────────────────────────────────────────────
+  django|flask|fastapi|python)
+    ${LINT_CMD:-"ruff check ."} 2>/dev/null || ${LINT_CMD:-"flake8 ."} ;;
+  # ── Go ───────────────────────────────────────────────────────
+  go)             ${LINT_CMD:-"golangci-lint run"} ;;
+  # ── Rust ─────────────────────────────────────────────────────
+  rust)           ${LINT_CMD:-"cargo clippy -- -D warnings"} ;;
+  # ── JVM ──────────────────────────────────────────────────────
+  spring-boot|java-maven|jsp-servlet)
+    ${LINT_CMD:-"mvn checkstyle:check"} ;;
+  java-gradle)    ${LINT_CMD:-"./gradlew checkstyleMain"} ;;
+  kotlin-jvm)     ${LINT_CMD:-"./gradlew ktlintCheck"} ;;
+  android-kotlin) ${LINT_CMD:-"./gradlew ktlintCheck && ./gradlew lint"} ;;
+  android-java)   ${LINT_CMD:-"./gradlew lint"} ;;
+  # ── Ruby ─────────────────────────────────────────────────────
+  rails|sinatra|ruby)
+    ${LINT_CMD:-"bundle exec rubocop"} ;;
+  # ── PHP ──────────────────────────────────────────────────────
+  laravel|symfony)
+    ${LINT_CMD:-"./vendor/bin/phpstan analyse --level=5"} ;;
+  wordpress|php)  ${LINT_CMD:-"phpcs ."} ;;
+  # ── .NET ─────────────────────────────────────────────────────
+  dotnet|dotnet-aspnet|dotnet-blazor)
+    ${LINT_CMD:-"dotnet format --verify-no-changes"} ;;
+  # ── Swift / iOS ──────────────────────────────────────────────
+  swift)          ${LINT_CMD:-"swiftlint"} ;;
+  # ── Flutter / Dart ───────────────────────────────────────────
+  flutter)        ${LINT_CMD:-"flutter analyze"} ;;
+  dart)           ${LINT_CMD:-"dart analyze"} ;;
+  # ── Elixir ───────────────────────────────────────────────────
+  phoenix|elixir) ${LINT_CMD:-"mix credo"} ;;
+  # ── Haskell ──────────────────────────────────────────────────
+  haskell)        ${LINT_CMD:-"hlint ."} ;;
+  # ── C / C++ ──────────────────────────────────────────────────
+  cmake-cpp|cpp)  ${LINT_CMD:-"clang-tidy $(find . -name '*.cpp' -o -name '*.h' | head -20)"} ;;
+  c-make)         ${LINT_CMD:-"clang-tidy $(find . -name '*.c' -o -name '*.h' | head -20)"} 2>/dev/null \
+                    || echo "⚠️ clang-tidy 미설치 — skip" ;;
+  # ── IaC ──────────────────────────────────────────────────────
+  terraform)      ${LINT_CMD:-"terraform fmt -check"} ;;
+  # ── Fallback ─────────────────────────────────────────────────
+  *)              [ -n "$LINT_CMD" ] && eval "$LINT_CMD" || echo "⚠️ lint 명령 미감지 — skip" ;;
 esac
 ```
 
@@ -63,18 +109,69 @@ esac
 
 ```bash
 case "$PROJECT_TYPE" in
-  nextjs|react-native|react|node)
-    npx tsc --noEmit 2>/dev/null || echo "ℹ️ TypeScript 미사용 — skip"
-    ;;
-  python)
-    mypy . --ignore-missing-imports 2>/dev/null || echo "ℹ️ mypy 미설치 — skip"
-    ;;
+  # ── JS / TypeScript ──────────────────────────────────────────
+  nextjs|react-native|react|node-server|node|remix|gatsby|electron)
+    npx tsc --noEmit 2>/dev/null || echo "ℹ️ TypeScript 미사용 — skip" ;;
+  vue)
+    npx vue-tsc --noEmit 2>/dev/null || npx tsc --noEmit 2>/dev/null || echo "ℹ️ skip" ;;
+  nuxt)
+    npx nuxi typecheck 2>/dev/null || npx tsc --noEmit 2>/dev/null || echo "ℹ️ skip" ;;
+  angular)
+    npx tsc --noEmit 2>/dev/null || echo "ℹ️ skip" ;;
+  svelte)
+    npx svelte-check 2>/dev/null || echo "ℹ️ svelte-check 미설치 — skip" ;;
+  astro)
+    npx astro check 2>/dev/null || echo "ℹ️ skip" ;;
+  # ── Python ───────────────────────────────────────────────────
+  django|flask|fastapi|python)
+    mypy . --ignore-missing-imports 2>/dev/null || echo "ℹ️ mypy 미설치 — skip" ;;
+  # ── Go ───────────────────────────────────────────────────────
   go)
     go vet ./... ;;
+  # ── Rust ─────────────────────────────────────────────────────
   rust)
     cargo check ;;
-  java)
+  # ── JVM ──────────────────────────────────────────────────────
+  spring-boot|java-maven|jsp-servlet)
     mvn compile -q ;;
+  java-gradle)
+    ./gradlew compileJava -q ;;
+  kotlin-jvm)
+    ./gradlew compileKotlin -q ;;
+  android-kotlin)
+    ./gradlew compileDebugKotlin -q ;;
+  android-java)
+    ./gradlew compileDebugJavaSources -q ;;
+  # ── Ruby ─────────────────────────────────────────────────────
+  rails|sinatra|ruby)
+    bundle exec srb tc 2>/dev/null || echo "ℹ️ Sorbet 미사용 — skip" ;;
+  # ── PHP ──────────────────────────────────────────────────────
+  laravel|symfony|wordpress|php)
+    ./vendor/bin/phpstan analyse --level=5 2>/dev/null || echo "ℹ️ phpstan 미설치 — skip" ;;
+  # ── .NET ─────────────────────────────────────────────────────
+  dotnet|dotnet-aspnet|dotnet-blazor)
+    dotnet build --no-incremental -q 2>&1 | grep -E "error|Error" || echo "✅ build ok" ;;
+  # ── Swift / iOS ──────────────────────────────────────────────
+  swift)
+    swift build 2>&1 | grep -E "error:|warning:" | head -20 || echo "✅ build ok" ;;
+  # ── Flutter / Dart ───────────────────────────────────────────
+  flutter)
+    dart analyze 2>/dev/null || echo "ℹ️ skip" ;;
+  dart)
+    dart analyze 2>/dev/null || echo "ℹ️ skip" ;;
+  # ── Elixir ───────────────────────────────────────────────────
+  phoenix|elixir)
+    mix dialyzer 2>/dev/null || echo "ℹ️ dialyzer 미설치 — skip" ;;
+  # ── Haskell ──────────────────────────────────────────────────
+  haskell)
+    stack build --fast 2>&1 | grep -E "error|Error" | head -20 || echo "✅ ok" ;;
+  # ── C / C++ ──────────────────────────────────────────────────
+  cmake-cpp|cpp|c-make)
+    make -n 2>&1 | grep -E "error:" | head -10 || echo "ℹ️ type check — build 단계에서 검증" ;;
+  # ── IaC ──────────────────────────────────────────────────────
+  terraform)
+    terraform validate ;;
+  # ── Fallback ─────────────────────────────────────────────────
   *)
     echo "ℹ️ type check — project_type=$PROJECT_TYPE skip" ;;
 esac
@@ -93,15 +190,91 @@ echo "$CHANGED" | xargs grep -nE 'TODO|FIXME|HACK' 2>/dev/null  # 미처리 TODO
 
 # project_type별 추가 패턴
 case "$PROJECT_TYPE" in
-  nextjs|react|react-native)
-    echo "$CHANGED" | xargs grep -nE '<button[[:space:]>]' 2>/dev/null   # raw <button>
-    echo "$CHANGED" | xargs grep -nE "import axios from 'axios'" 2>/dev/null  # 직접 axios
+  # ── JS / TypeScript 계열 ──────────────────────────────────────
+  nextjs|react|react-native|vue|nuxt|svelte|astro|remix|gatsby|angular)
+    echo "$CHANGED" | xargs grep -nE '<button[[:space:]>]' 2>/dev/null      # raw <button> (접근성)
+    echo "$CHANGED" | xargs grep -nE "import axios from 'axios'" 2>/dev/null # 직접 axios (래퍼 미사용)
+    echo "$CHANGED" | xargs grep -nE 'dangerouslySetInnerHTML' 2>/dev/null   # XSS 위험
     ;;
-  python)
-    echo "$CHANGED" | xargs grep -nE 'import \*' 2>/dev/null   # wildcard import
+  electron)
+    echo "$CHANGED" | xargs grep -nE 'nodeIntegration.*true' 2>/dev/null   # 보안 위반
+    echo "$CHANGED" | xargs grep -nE 'contextIsolation.*false' 2>/dev/null
     ;;
+  node-server|node)
+    echo "$CHANGED" | xargs grep -nE 'eval\(' 2>/dev/null                   # eval 금지
+    echo "$CHANGED" | xargs grep -nE "require\('child_process'\)" 2>/dev/null # 직접 shell
+    ;;
+  # ── Python 계열 ──────────────────────────────────────────────
+  django)
+    echo "$CHANGED" | xargs grep -nE 'import \*' 2>/dev/null                # wildcard import
+    echo "$CHANGED" | xargs grep -nE 'raw_input\|input(' 2>/dev/null         # 직접 user input
+    echo "$CHANGED" | xargs grep -nE 'DEBUG\s*=\s*True' 2>/dev/null         # DEBUG 노출
+    ;;
+  flask|fastapi|python)
+    echo "$CHANGED" | xargs grep -nE 'import \*' 2>/dev/null
+    echo "$CHANGED" | xargs grep -nE 'eval\(|exec\(' 2>/dev/null             # 코드 실행
+    ;;
+  # ── Go ───────────────────────────────────────────────────────
   go)
-    echo "$CHANGED" | xargs grep -nE 'panic\(' 2>/dev/null   # naked panic
+    echo "$CHANGED" | xargs grep -nE 'panic\(' 2>/dev/null                  # naked panic
+    echo "$CHANGED" | xargs grep -nE '_ = err' 2>/dev/null                  # 에러 무시
+    ;;
+  # ── Rust ─────────────────────────────────────────────────────
+  rust)
+    echo "$CHANGED" | xargs grep -nE '#\[allow\(dead_code\)\]' 2>/dev/null  # dead code 허용
+    echo "$CHANGED" | xargs grep -nE 'unwrap\(\)' 2>/dev/null               # unwrap (패닉 위험)
+    ;;
+  # ── JVM 계열 ─────────────────────────────────────────────────
+  spring-boot|java-maven|java-gradle|kotlin-jvm|jsp-servlet)
+    echo "$CHANGED" | xargs grep -nE 'printStackTrace\(\)' 2>/dev/null      # 스택 노출
+    echo "$CHANGED" | xargs grep -nE 'System\.out\.print' 2>/dev/null       # System.out
+    echo "$CHANGED" | xargs grep -nE 'catch\s*\(\s*Exception\s' 2>/dev/null # 과도한 catch
+    ;;
+  android-kotlin)
+    echo "$CHANGED" | xargs grep -nE 'runOnUiThread\|AsyncTask' 2>/dev/null # 구식 비동기
+    echo "$CHANGED" | xargs grep -nE '!!' 2>/dev/null                       # !! (null 강제)
+    ;;
+  android-java)
+    echo "$CHANGED" | xargs grep -nE 'AsyncTask' 2>/dev/null                # deprecated
+    echo "$CHANGED" | xargs grep -nE 'System\.out\.print' 2>/dev/null
+    ;;
+  # ── Ruby 계열 ────────────────────────────────────────────────
+  rails)
+    echo "$CHANGED" | xargs grep -nE 'render.*html.*safe' 2>/dev/null       # XSS
+    echo "$CHANGED" | xargs grep -nE 'raw\s' 2>/dev/null                    # html raw
+    ;;
+  ruby|sinatra)
+    echo "$CHANGED" | xargs grep -nE 'eval\(' 2>/dev/null
+    ;;
+  # ── PHP 계열 ─────────────────────────────────────────────────
+  laravel|symfony|php|wordpress)
+    echo "$CHANGED" | xargs grep -nE '\$_GET\|\$_POST\|\$_REQUEST' 2>/dev/null # 직접 입력
+    echo "$CHANGED" | xargs grep -nE 'eval\(' 2>/dev/null
+    echo "$CHANGED" | xargs grep -nE 'var_dump\|print_r' 2>/dev/null        # 디버그 출력
+    ;;
+  # ── .NET ─────────────────────────────────────────────────────
+  dotnet|dotnet-aspnet|dotnet-blazor)
+    echo "$CHANGED" | xargs grep -nE 'Console\.Write\|Debug\.Print' 2>/dev/null
+    echo "$CHANGED" | xargs grep -nE 'catch\s*\(\s*Exception\s' 2>/dev/null
+    ;;
+  # ── Swift / iOS ──────────────────────────────────────────────
+  swift)
+    echo "$CHANGED" | xargs grep -nE 'fatalError\|force_try\|try!' 2>/dev/null # 강제 실행
+    echo "$CHANGED" | xargs grep -nE 'print(' 2>/dev/null                    # 프로덕션 print
+    ;;
+  # ── Flutter / Dart ───────────────────────────────────────────
+  flutter|dart)
+    echo "$CHANGED" | xargs grep -nE 'print\(' 2>/dev/null                  # 프로덕션 print
+    echo "$CHANGED" | xargs grep -nE '!' 2>/dev/null | grep -v '//' | head -5 # null 강제
+    ;;
+  # ── Elixir ───────────────────────────────────────────────────
+  phoenix|elixir)
+    echo "$CHANGED" | xargs grep -nE 'IO\.puts\|IO\.inspect' 2>/dev/null    # 프로덕션 출력
+    ;;
+  # ── IaC ──────────────────────────────────────────────────────
+  terraform)
+    echo "$CHANGED" | xargs grep -nE 'password\s*=\s*"[^"]' 2>/dev/null     # 하드코딩 credentials
+    echo "$CHANGED" | xargs grep -nE 'access_key\s*=\s*"[^"]' 2>/dev/null
     ;;
 esac
 
@@ -119,16 +292,40 @@ TEST_CMD=$(grep 'test=' .claude/plans/*.md | tail -1 | sed 's/.*test=`\([^`]*\)`
 TDAD_FILE=$(grep 'TDAD' .claude/plans/*.md | grep -oE '\S+\.test\.\S+' | head -1)
 if [ -n "$TDAD_FILE" ]; then
   case "$PROJECT_TYPE" in
-    nextjs|react|react-native|node)
-      ${TEST_CMD:-"npx jest"} "$TDAD_FILE" ;;
-    python)
+    nextjs|react|react-native|vue|nuxt|angular|svelte|astro|remix|gatsby|electron|node-server|node)
+      ${TEST_CMD:-"npx jest"} "$TDAD_FILE" 2>/dev/null \
+        || ${TEST_CMD:-"npx vitest run"} "$TDAD_FILE" ;;
+    django|flask|fastapi|python)
       ${TEST_CMD:-"pytest"} "$TDAD_FILE" ;;
     go)
       go test -run "$(basename $TDAD_FILE)" ./... ;;
     rust)
       cargo test ;;
-    java)
-      ${TEST_CMD:-"mvn test"} ;;
+    spring-boot|java-maven|java-gradle|kotlin-jvm|jsp-servlet)
+      ${TEST_CMD:-"mvn test"} 2>/dev/null || ${TEST_CMD:-"./gradlew test"} ;;
+    android-kotlin|android-java)
+      ${TEST_CMD:-"./gradlew testDebugUnitTest"} ;;
+    rails|sinatra|ruby)
+      ${TEST_CMD:-"bundle exec rspec"} "$TDAD_FILE" 2>/dev/null \
+        || ${TEST_CMD:-"bundle exec rake test"} ;;
+    laravel|symfony|php|wordpress)
+      ${TEST_CMD:-"./vendor/bin/phpunit"} "$TDAD_FILE" ;;
+    dotnet|dotnet-aspnet|dotnet-blazor)
+      ${TEST_CMD:-"dotnet test"} ;;
+    swift)
+      ${TEST_CMD:-"swift test"} ;;
+    flutter)
+      ${TEST_CMD:-"flutter test"} "$TDAD_FILE" ;;
+    dart)
+      ${TEST_CMD:-"dart test"} "$TDAD_FILE" ;;
+    phoenix|elixir)
+      ${TEST_CMD:-"mix test"} "$TDAD_FILE" ;;
+    haskell)
+      ${TEST_CMD:-"stack test"} ;;
+    cmake-cpp|cpp|c-make)
+      ${TEST_CMD:-"make test"} 2>/dev/null || ${TEST_CMD:-"ctest"} ;;
+    terraform)
+      echo "ℹ️ terraform — terratest가 있으면 수동 실행" ;;
     *)
       [ -n "$TEST_CMD" ] && eval "$TEST_CMD $TDAD_FILE" || echo "⚠️ test 명령 미감지" ;;
   esac
@@ -347,12 +544,37 @@ ALL_TESTS=$(echo -e "$IMPACT_TEST_FILES\n$CHANGED_TEST_FILES" | sort -u | tr '\n
 if [ -n "$ALL_TESTS" ]; then
   echo "🧪 영향 반경 테스트 실행 (변경 파일 + importer 테스트)..."
   case "$PROJECT_TYPE" in
-    nextjs|react|react-native|node)
-      npx jest $ALL_TESTS --passWithNoTests 2>&1 | tail -20 ;;
-    python)
+    nextjs|react|react-native|vue|nuxt|angular|svelte|astro|remix|gatsby|electron|node-server|node)
+      npx jest $ALL_TESTS --passWithNoTests 2>&1 | tail -20 \
+        || npx vitest run $ALL_TESTS 2>&1 | tail -20 ;;
+    django|flask|fastapi|python)
       pytest $ALL_TESTS -v 2>&1 | tail -20 ;;
     go)
       go test ./... 2>&1 | tail -20 ;;
+    rust)
+      cargo test 2>&1 | tail -20 ;;
+    spring-boot|java-maven|java-gradle|kotlin-jvm|jsp-servlet)
+      mvn test -q 2>&1 | tail -20 || ./gradlew test 2>&1 | tail -20 ;;
+    android-kotlin|android-java)
+      ./gradlew testDebugUnitTest 2>&1 | tail -20 ;;
+    rails|sinatra|ruby)
+      bundle exec rspec $ALL_TESTS 2>&1 | tail -20 ;;
+    laravel|symfony|php|wordpress)
+      ./vendor/bin/phpunit $ALL_TESTS 2>&1 | tail -20 ;;
+    dotnet|dotnet-aspnet|dotnet-blazor)
+      dotnet test 2>&1 | tail -20 ;;
+    swift)
+      swift test 2>&1 | tail -20 ;;
+    flutter)
+      flutter test $ALL_TESTS 2>&1 | tail -20 ;;
+    dart)
+      dart test $ALL_TESTS 2>&1 | tail -20 ;;
+    phoenix|elixir)
+      mix test $ALL_TESTS 2>&1 | tail -20 ;;
+    haskell)
+      stack test 2>&1 | tail -20 ;;
+    cmake-cpp|cpp|c-make)
+      make test 2>&1 | tail -20 || ctest 2>&1 | tail -20 ;;
     *)
       echo "ℹ️ test 명령 자동 감지 안됨 — 수동 확인 필요" ;;
   esac
