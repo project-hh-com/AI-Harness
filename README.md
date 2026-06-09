@@ -1,14 +1,175 @@
 # AI-Harness · Universal Multi-Agent Pipeline
 
-> 자연어 한 줄 → 9개 에이전트 자동 실행 → Draft PR  
-> Next.js · React Native · Python · Go · Rust · 모든 프레임워크 지원
+> One natural-language prompt → 9 agents run automatically → Draft PR  
+> Works with Next.js · React Native · Python · Go · Rust · any framework
+
+[한국어](#한국어) | [English](#english)
 
 ---
 
-## 한 눈에 보기
+## English
+
+### Overview
+
+AI-Harness is a multi-agent development pipeline for Claude Code. Describe a task in plain language and 9 specialized agents handle planning, implementation, 6-gate QA, and Draft PR creation automatically.
+
+### Install via Claude Code plugin marketplace
 
 ```
-/implement <자연어 input>
+/plugin marketplace add https://github.com/project-hh-com/AI-Harness
+/plugin install ai-harness@ai-harness
+```
+
+After installation, restart Claude Code to activate the `/implement` command.
+
+### Install via script (local project)
+
+```bash
+# Run from your project root
+bash /path/to/AI-Harness/install/install.sh
+
+# Or specify a path
+bash /path/to/AI-Harness/install/install.sh /path/to/your-project
+```
+
+### Generate layered CLAUDE.md (recommended after install)
+
+```
+/harness-init-claude-md
+```
+
+Analyzes your project structure and auto-generates per-layer `CLAUDE.md` files so agents learn your project's patterns.
+
+### Usage
+
+```
+# New feature
+/implement Add avatar upload to user profile page
+
+# With Figma spec
+/implement Update checkout button design
+Figma: https://www.figma.com/design/xxx/?node-id=172:61
+
+# Bug fix
+/implement login page password reset button not working
+area=src/pages/auth type=bugfix
+```
+
+### Pipeline
+
+```
+/implement <input>
+      │
+      ▼ 0. input-refiner   — normalize input + detect project_type
+      ▼ 1. planner (Opus)  — 11-step analysis → plan file
+      ▼ 2. implementer     — write code in waves (S2 long-lived)
+      ▼ 3. functional-qa   — Lint / Type / Pattern / TDAD / Complexity / Impact Radius
+      ▼ 4. design-qa       — Figma 4-axis check (optional)
+      ▼ 5. visual-qa       — snapshot regression (optional)
+      ▼ 6. tracking-impl   — replace TRACK markers (optional)
+      ▼ 7. tracking-qa     — zero new external SDK calls (optional)
+      ▼ 8. release         — create Draft PR
+```
+
+### 6-Gate QA
+
+| Gate | What it checks | On fail |
+|---|---|---|
+| 1. Lint | Project lint command | Re-enter implementer |
+| 2. Type Check | tsc / mypy / go vet / cargo check | Re-enter implementer |
+| 3. Pattern | Forbidden pattern grep + custom rules | Re-enter implementer |
+| 4. TDAD Test | Pass the failing tests planner wrote | Re-enter implementer |
+| 5. Static Complexity | Function ≤20 lines, nesting ≤3, params ≤3 | Re-enter implementer |
+| 6. **Impact Radius** | All files importing the changed module | Re-enter implementer |
+
+Gate 6 automatically detects infinite-call loops, cache key collisions, and duplicate interceptor registration when shared hooks, stores, or API clients are modified.
+
+### Supported Stacks
+
+| Stack | Auto-detected by | Lint | Test |
+|---|---|---|---|
+| Next.js | `"next"` in package.json | `next lint` | `jest` / `vitest` |
+| React Native | `"expo"` in package.json | `eslint` | `jest` |
+| React | `"react"` in package.json | `eslint` | `jest` / `vitest` |
+| Python | `pyproject.toml` / `requirements.txt` | `ruff` / `flake8` | `pytest` |
+| Go | `go.mod` | `golangci-lint` | `go test ./...` |
+| Rust | `Cargo.toml` | `cargo clippy` | `cargo test` |
+| Java | `pom.xml` / `build.gradle` | `checkstyle` | `mvn test` |
+| Node | `package.json` | `eslint` | `jest` / `vitest` |
+
+### Safety Guardrails
+
+- **Protected files** — blocks edits to `next.config.*`, `.github/workflows/**`, `package.json`, etc.
+- **Protected branches** — blocks direct push to `main` / `master` / `prd` / `production`
+- **PR base** — auto-detects `develop → alpha → beta → staging → dev` (prd target permanently blocked)
+- **Infinite-call prevention** — validates SWR / React Query cache key patterns
+- **Duplicate interceptor detection** — catches double-registered axios/fetch interceptors
+
+### Uninstall
+
+```bash
+bash /path/to/AI-Harness/install/install.sh --uninstall /path/to/your-project
+```
+
+Only removes AI-Harness files. Existing `.claude/` assets are preserved.
+
+### Full guide
+
+Open `docs/guide.html` in a browser for the interactive visual guide.
+
+---
+
+## 한국어
+
+> 자연어 한 줄 → 9개 에이전트 자동 실행 → Draft PR  
+> Next.js · React Native · Python · Go · Rust · 모든 프레임워크 지원
+
+### 마켓플레이스로 설치
+
+```
+/plugin marketplace add https://github.com/project-hh-com/AI-Harness
+/plugin install ai-harness@ai-harness
+```
+
+설치 후 Claude Code를 재시작하면 `/implement` 명령이 활성화됩니다.
+
+### 스크립트로 설치 (로컬 프로젝트)
+
+```bash
+# 대상 프로젝트 루트에서 실행
+bash /path/to/AI-Harness/install/install.sh
+
+# 또는 경로 지정
+bash /path/to/AI-Harness/install/install.sh /path/to/your-project
+```
+
+### 설치 후 CLAUDE.md 생성 (권장)
+
+```
+/harness-init-claude-md
+```
+
+프로젝트 구조를 분석해 레이어별 CLAUDE.md를 자동 생성합니다.
+
+### 사용법
+
+```
+# 새 기능
+/implement 사용자 프로필 페이지에 아바타 업로드 기능 추가
+
+# Figma 포함
+/implement 결제 버튼 디자인 변경
+Figma: https://www.figma.com/design/xxx/?node-id=172:61
+
+# 버그픽스
+/implement login page password reset button not working
+area=src/pages/auth type=bugfix
+```
+
+### 파이프라인
+
+```
+/implement <input>
       │
       ▼ 0. input-refiner   — 표준 input 정제 + project_type 감지
       ▼ 1. planner (Opus)  — 11 steps 분석 → plan 파일 생성
@@ -21,63 +182,7 @@
       ▼ 8. release         — Draft PR 생성
 ```
 
----
-
-## 설치
-
-```bash
-# 대상 프로젝트 루트에서 실행
-bash /path/to/dev-agent/install/install.sh
-
-# 또는 경로 지정
-bash /path/to/dev-agent/install/install.sh /path/to/your-project
-```
-
-설치 후 Claude Code를 재시작하면 `/implement` 명령이 활성화됩니다.
-
-### 설치 후 CLAUDE.md 생성 (권장)
-
-```
-/harness-init-claude-md
-```
-
-프로젝트 구조를 분석해 레이어별 CLAUDE.md를 자동 생성합니다.
-
----
-
-## 사용법
-
-```
-# 기본
-/implement 사용자 프로필 페이지에 아바타 업로드 기능 추가
-
-# Figma 포함
-/implement 결제 버튼 디자인 변경
-Figma: https://www.figma.com/design/xxx/?node-id=172:61
-
-# 버그픽스
-/implement login page password reset button not working
-area=src/pages/auth type=bugfix
-```
-
----
-
-## 지원 스택
-
-| 언어/프레임워크 | 자동 감지 기준 | Lint | Test |
-|---|---|---|---|
-| Next.js | `"next"` in package.json | `next lint` | `jest` / `vitest` |
-| React Native | `"expo"` in package.json | `eslint` | `jest` |
-| React | `"react"` in package.json | `eslint` | `jest` / `vitest` |
-| Python | `pyproject.toml` / `requirements.txt` | `ruff` / `flake8` | `pytest` |
-| Go | `go.mod` | `golangci-lint` | `go test ./...` |
-| Rust | `Cargo.toml` | `cargo clippy` | `cargo test` |
-| Java | `pom.xml` / `build.gradle` | `checkstyle` | `mvn test` |
-| Node | `package.json` | `eslint` | `jest` / `vitest` |
-
----
-
-## QA 게이트 (6단계)
+### QA 게이트 (6단계)
 
 | Gate | 내용 | 실패 시 |
 |---|---|---|
@@ -90,9 +195,28 @@ area=src/pages/auth type=bugfix
 
 Gate 6은 SWR 훅 · 전역 스토어 · API 클라이언트 변경 시 무한 호출 · 캐시 키 충돌 · 인터셉터 중복 등을 자동 탐지합니다.
 
----
+### 지원 스택
 
-## 설치 구조
+| 언어/프레임워크 | 자동 감지 기준 | Lint | Test |
+|---|---|---|---|
+| Next.js | `"next"` in package.json | `next lint` | `jest` / `vitest` |
+| React Native | `"expo"` in package.json | `eslint` | `jest` |
+| React | `"react"` in package.json | `eslint` | `jest` / `vitest` |
+| Python | `pyproject.toml` / `requirements.txt` | `ruff` / `flake8` | `pytest` |
+| Go | `go.mod` | `golangci-lint` | `go test ./...` |
+| Rust | `Cargo.toml` | `cargo clippy` | `cargo test` |
+| Java | `pom.xml` / `build.gradle` | `checkstyle` | `mvn test` |
+| Node | `package.json` | `eslint` | `jest` / `vitest` |
+
+### 안전 보호 장치
+
+- **보호 파일** — `next.config.*`, `.github/workflows/**`, `package.json` 등 설정 파일 편집 차단
+- **보호 브랜치** — `main` / `master` / `prd` / `production` 직접 push 차단
+- **PR 베이스** — `develop → alpha → beta → staging → dev` 자동 감지 (prd 타겟 영구 금지)
+- **무한 호출 방지** — SWR/React Query 캐시 키 패턴 검증
+- **인터셉터 중복 감지** — axios/fetch 인터셉터 중복 등록 자동 탐지
+
+### 설치 구조
 
 ```
 your-project/.claude/
@@ -106,30 +230,14 @@ your-project/.claude/
 └── qa-reports/       — QA 리포트 누적
 ```
 
----
-
-## 안전 보호 장치
-
-- **보호 파일**: `next.config.*`, `.github/workflows/**`, `package.json` 등 설정 파일 편집 차단
-- **보호 브랜치**: `main` / `master` / `prd` / `production` 직접 push 차단
-- **PR 베이스**: `develop → alpha → beta → staging → dev` 자동 감지 (prd 타겟 영구 금지)
-- **인터셉터 중복**: API 클라이언트 변경 시 중복 등록 자동 감지
-- **무한 호출 방지**: SWR/React Query 캐시 키 패턴 검증
-
----
-
-## 전체 가이드
+### 제거
 
 ```bash
-open /path/to/dev-agent/docs/guide.html
+bash /path/to/AI-Harness/install/install.sh --uninstall /path/to/your-project
 ```
 
----
+AI-Harness 파일만 제거합니다. 기존 `.claude/` 자산은 보존됩니다.
 
-## 제거
+### 전체 가이드
 
-```bash
-bash /path/to/dev-agent/install/install.sh --uninstall /path/to/your-project
-```
-
-v7 파일만 제거합니다. 기존 `.claude/` 자산은 보존됩니다.
+`docs/guide.html`을 브라우저에서 열면 인터랙티브 시각 가이드를 볼 수 있습니다.
