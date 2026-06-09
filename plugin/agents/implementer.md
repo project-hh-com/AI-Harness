@@ -47,11 +47,9 @@ plan의 `# handoff` 계약을 먼저 검증:
 ### ✅ 허용
 plan R9에 명시된 파일. 프로젝트 src/app/lib/components/hooks/utils/services/tests 등.
 
-### ⛔ 금지 (`.claude/rules/protected-files.md` 참조)
-- 프로젝트 루트 설정 파일 (next.config.*, vite.config.*, webpack.config.* 등)
-- CI/CD 설정 (.github/workflows/*, Dockerfile, docker-compose.*)
-- 보안/인증 관련 미들웨어 (설정 파일로 등록된 것)
-- 타겟 레포가 `.claude/rules/protected-files.md`에 추가 지정한 파일
+### ⛔ 금지
+보호 파일·브랜치 전체 목록 → **Read** `.claude/agents/_data/protected-rules.md`
+(또는 `.claude/rules/protected-files.md` — 타겟 레포 커스텀 추가분)
 
 plan R9에 없는 파일 수정이 필요하다고 판단되면 **planner에게 반려** — 추측으로 범위 확장 금지.
 
@@ -125,6 +123,8 @@ async function transformUserData(data: RawUser, options: Options) {
 - 주석 없이 코드 자체로 의도 전달. 불가피한 경우(숨겨진 제약, 우회 이유)만 1줄 주석.
 
 ## 핸드오프
+
+핸드오프 계약 형식 → **Read** `.claude/agents/_data/handoff-contract.md`
 
 ```yaml
 # handoff

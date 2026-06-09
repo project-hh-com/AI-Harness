@@ -40,10 +40,13 @@ COMMITS=$(git rev-list --count HEAD~$WAVES..HEAD)
 
 ## 4개 검증 게이트 (project_type 기반 자동 선택)
 
+각 게이트의 기본 명령은 plan R9 `도구 명령` 항목에서 읽는다.
+전체 스택별 명령 참조: `.claude/agents/_data/tool-mapping.md`
+
 ### Gate 1 · Lint
 
 ```bash
-# plan R1 도구 매핑에서 lint 명령 가져옴
+# plan R9 도구 명령에서 lint 가져옴 (없으면 project_type으로 fallback)
 LINT_CMD=$(grep 'lint=' .claude/plans/*.md | tail -1 | sed 's/.*lint=`\([^`]*\)`.*/\1/')
 
 case "$PROJECT_TYPE" in
@@ -179,106 +182,60 @@ esac
 
 ### Gate 3 · Pattern & Convention Check
 
-project_type 무관하게 공통 패턴 위반 검출:
+금지 패턴 전체 목록 → **Read** `.claude/agents/_data/forbidden-patterns.md`
 
 ```bash
 CHANGED=$(git diff --name-only HEAD~$WAVES..HEAD)
 
-# 공통 위반 패턴
-echo "$CHANGED" | xargs grep -nE 'console\.log\(' 2>/dev/null    # 프로덕션 console.log
-echo "$CHANGED" | xargs grep -nE 'TODO|FIXME|HACK' 2>/dev/null  # 미처리 TODO
+# 공통 (모든 스택)
+echo "$CHANGED" | xargs grep -nE 'console\.log\(' 2>/dev/null
+echo "$CHANGED" | xargs grep -nE 'TODO|FIXME|HACK' 2>/dev/null
 
-# project_type별 추가 패턴
+# project_type별 패턴 — _data/forbidden-patterns.md 의 해당 섹션을 확인하고
+# 아래 템플릿으로 각 패턴 실행
+# echo "$CHANGED" | xargs grep -nE '<패턴>' 2>/dev/null
+
 case "$PROJECT_TYPE" in
-  # ── JS / TypeScript 계열 ──────────────────────────────────────
   nextjs|react|react-native|vue|nuxt|svelte|astro|remix|gatsby|angular)
-    echo "$CHANGED" | xargs grep -nE '<button[[:space:]>]' 2>/dev/null      # raw <button> (접근성)
-    echo "$CHANGED" | xargs grep -nE "import axios from 'axios'" 2>/dev/null # 직접 axios (래퍼 미사용)
-    echo "$CHANGED" | xargs grep -nE 'dangerouslySetInnerHTML' 2>/dev/null   # XSS 위험
-    ;;
+    echo "$CHANGED" | xargs grep -nE '<button[[:space:]>]|dangerouslySetInnerHTML' 2>/dev/null
+    echo "$CHANGED" | xargs grep -nE "import axios from 'axios'" 2>/dev/null ;;
   electron)
-    echo "$CHANGED" | xargs grep -nE 'nodeIntegration.*true' 2>/dev/null   # 보안 위반
-    echo "$CHANGED" | xargs grep -nE 'contextIsolation.*false' 2>/dev/null
-    ;;
+    echo "$CHANGED" | xargs grep -nE 'nodeIntegration.*true|contextIsolation.*false' 2>/dev/null ;;
   node-server|node)
-    echo "$CHANGED" | xargs grep -nE 'eval\(' 2>/dev/null                   # eval 금지
-    echo "$CHANGED" | xargs grep -nE "require\('child_process'\)" 2>/dev/null # 직접 shell
-    ;;
-  # ── Python 계열 ──────────────────────────────────────────────
+    echo "$CHANGED" | xargs grep -nE "eval\(|require\('child_process'\)" 2>/dev/null ;;
   django)
-    echo "$CHANGED" | xargs grep -nE 'import \*' 2>/dev/null                # wildcard import
-    echo "$CHANGED" | xargs grep -nE 'raw_input\|input(' 2>/dev/null         # 직접 user input
-    echo "$CHANGED" | xargs grep -nE 'DEBUG\s*=\s*True' 2>/dev/null         # DEBUG 노출
-    ;;
+    echo "$CHANGED" | xargs grep -nE 'import \*|DEBUG\s*=\s*True' 2>/dev/null ;;
   flask|fastapi|python)
-    echo "$CHANGED" | xargs grep -nE 'import \*' 2>/dev/null
-    echo "$CHANGED" | xargs grep -nE 'eval\(|exec\(' 2>/dev/null             # 코드 실행
-    ;;
-  # ── Go ───────────────────────────────────────────────────────
+    echo "$CHANGED" | xargs grep -nE 'import \*|eval\(|exec\(' 2>/dev/null ;;
   go)
-    echo "$CHANGED" | xargs grep -nE 'panic\(' 2>/dev/null                  # naked panic
-    echo "$CHANGED" | xargs grep -nE '_ = err' 2>/dev/null                  # 에러 무시
-    ;;
-  # ── Rust ─────────────────────────────────────────────────────
+    echo "$CHANGED" | xargs grep -nE 'panic\(|_ = err' 2>/dev/null ;;
   rust)
-    echo "$CHANGED" | xargs grep -nE '#\[allow\(dead_code\)\]' 2>/dev/null  # dead code 허용
-    echo "$CHANGED" | xargs grep -nE 'unwrap\(\)' 2>/dev/null               # unwrap (패닉 위험)
-    ;;
-  # ── JVM 계열 ─────────────────────────────────────────────────
+    echo "$CHANGED" | xargs grep -nE 'unwrap\(\)|#\[allow\(dead_code\)\]' 2>/dev/null ;;
   spring-boot|java-maven|java-gradle|kotlin-jvm|jsp-servlet)
-    echo "$CHANGED" | xargs grep -nE 'printStackTrace\(\)' 2>/dev/null      # 스택 노출
-    echo "$CHANGED" | xargs grep -nE 'System\.out\.print' 2>/dev/null       # System.out
-    echo "$CHANGED" | xargs grep -nE 'catch\s*\(\s*Exception\s' 2>/dev/null # 과도한 catch
-    ;;
+    echo "$CHANGED" | xargs grep -nE 'printStackTrace\(\)|System\.out\.print' 2>/dev/null ;;
   android-kotlin)
-    echo "$CHANGED" | xargs grep -nE 'runOnUiThread\|AsyncTask' 2>/dev/null # 구식 비동기
-    echo "$CHANGED" | xargs grep -nE '!!' 2>/dev/null                       # !! (null 강제)
-    ;;
+    echo "$CHANGED" | xargs grep -nE 'AsyncTask|!!' 2>/dev/null ;;
   android-java)
-    echo "$CHANGED" | xargs grep -nE 'AsyncTask' 2>/dev/null                # deprecated
-    echo "$CHANGED" | xargs grep -nE 'System\.out\.print' 2>/dev/null
-    ;;
-  # ── Ruby 계열 ────────────────────────────────────────────────
+    echo "$CHANGED" | xargs grep -nE 'AsyncTask|System\.out\.print' 2>/dev/null ;;
   rails)
-    echo "$CHANGED" | xargs grep -nE 'render.*html.*safe' 2>/dev/null       # XSS
-    echo "$CHANGED" | xargs grep -nE 'raw\s' 2>/dev/null                    # html raw
-    ;;
-  ruby|sinatra)
-    echo "$CHANGED" | xargs grep -nE 'eval\(' 2>/dev/null
-    ;;
-  # ── PHP 계열 ─────────────────────────────────────────────────
+    echo "$CHANGED" | xargs grep -nE 'render.*html.*safe|raw\s' 2>/dev/null ;;
   laravel|symfony|php|wordpress)
-    echo "$CHANGED" | xargs grep -nE '\$_GET\|\$_POST\|\$_REQUEST' 2>/dev/null # 직접 입력
-    echo "$CHANGED" | xargs grep -nE 'eval\(' 2>/dev/null
-    echo "$CHANGED" | xargs grep -nE 'var_dump\|print_r' 2>/dev/null        # 디버그 출력
-    ;;
-  # ── .NET ─────────────────────────────────────────────────────
+    echo "$CHANGED" | xargs grep -nE '\$_GET|\$_POST|eval\(|var_dump' 2>/dev/null ;;
   dotnet|dotnet-aspnet|dotnet-blazor)
-    echo "$CHANGED" | xargs grep -nE 'Console\.Write\|Debug\.Print' 2>/dev/null
-    echo "$CHANGED" | xargs grep -nE 'catch\s*\(\s*Exception\s' 2>/dev/null
-    ;;
-  # ── Swift / iOS ──────────────────────────────────────────────
+    echo "$CHANGED" | xargs grep -nE 'Console\.Write|Debug\.Print' 2>/dev/null ;;
   swift)
-    echo "$CHANGED" | xargs grep -nE 'fatalError\|force_try\|try!' 2>/dev/null # 강제 실행
-    echo "$CHANGED" | xargs grep -nE 'print(' 2>/dev/null                    # 프로덕션 print
-    ;;
-  # ── Flutter / Dart ───────────────────────────────────────────
+    echo "$CHANGED" | xargs grep -nE 'fatalError|try!|print(' 2>/dev/null ;;
   flutter|dart)
-    echo "$CHANGED" | xargs grep -nE 'print\(' 2>/dev/null                  # 프로덕션 print
-    echo "$CHANGED" | xargs grep -nE '!' 2>/dev/null | grep -v '//' | head -5 # null 강제
-    ;;
-  # ── Elixir ───────────────────────────────────────────────────
+    echo "$CHANGED" | xargs grep -nE 'print\(' 2>/dev/null ;;
   phoenix|elixir)
-    echo "$CHANGED" | xargs grep -nE 'IO\.puts\|IO\.inspect' 2>/dev/null    # 프로덕션 출력
-    ;;
-  # ── IaC ──────────────────────────────────────────────────────
+    echo "$CHANGED" | xargs grep -nE 'IO\.puts|IO\.inspect' 2>/dev/null ;;
   terraform)
-    echo "$CHANGED" | xargs grep -nE 'password\s*=\s*"[^"]' 2>/dev/null     # 하드코딩 credentials
-    echo "$CHANGED" | xargs grep -nE 'access_key\s*=\s*"[^"]' 2>/dev/null
-    ;;
+    echo "$CHANGED" | xargs grep -nE 'password\s*=\s*"|access_key\s*=\s*"' 2>/dev/null ;;
+  ruby|sinatra)
+    echo "$CHANGED" | xargs grep -nE 'eval\(' 2>/dev/null ;;
 esac
 
-# 타겟 레포 커스텀 패턴 (.claude/rules/project-patterns.md 있으면)
+# 타겟 레포 커스텀 패턴
 [ -f .claude/rules/project-patterns.md ] && \
   bash .claude/scripts/check-patterns.sh "$CHANGED" .claude/rules/project-patterns.md
 ```

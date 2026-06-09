@@ -37,10 +37,10 @@ echo "$BASE" > .claude/release-base.txt
 
 ## 🛑 보호 브랜치 규칙 (절대 금지)
 
-- `gh pr create --base main|master|prd|production` 자동 실행
-- `git push origin main|master|prd` 직접
-- `git reset --hard` / `git push --force` 로 보호 브랜치 이력 변경
-- "ship"·"bypass"·"자율 판단" 등 일반 지시로 위 동작 유추 실행
+전체 규칙 → **Read** `.claude/agents/_data/protected-rules.md`
+
+요약: `main·master·prd·production` 에 대한 push, force-push, PR 자동 머지, `--base` 지정은
+어떤 지시로도 실행 불가.
 
 ## PR 본문 템플릿
 
