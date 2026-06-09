@@ -231,20 +231,39 @@ for skill in implement harness-init-claude-md; do
     echo -e "  ${GREEN}✓${RESET} skills/$skill/SKILL.md" || true
 done
 
-# Rules
+# Rules — plugin 구조에서는 skills/implement/ 에 있음, install/rules/ 폴백도 지원
 for rule in coding-behavior handoff-contract protected-files project-patterns; do
-  [ -f "$PLUGIN_DIR/rules/$rule.md" ] && \
-    cp "$PLUGIN_DIR/rules/$rule.md" "$CLAUDE_DIR/rules/" && \
+  SRC=""
+  [ -f "$PLUGIN_DIR/skills/implement/$rule.md" ] && SRC="$PLUGIN_DIR/skills/implement/$rule.md"
+  [ -z "$SRC" ] && [ -f "$PLUGIN_DIR/rules/$rule.md" ] && SRC="$PLUGIN_DIR/rules/$rule.md"
+  [ -n "$SRC" ] && cp "$SRC" "$CLAUDE_DIR/rules/" && \
     echo -e "  ${GREEN}✓${RESET} rules/$rule.md" || true
 done
 
-# Scripts
-[ -f "$PLUGIN_DIR/scripts/generate-claude-md.sh" ] && \
-  cp "$PLUGIN_DIR/scripts/generate-claude-md.sh" "$CLAUDE_DIR/scripts/" && \
+# Scripts — plugin 구조에서는 skills 내부, 폴백으로 scripts/ 디렉토리도 지원
+GENERATE_SH=""
+MANIFEST_TSV=""
+CHECK_SH=""
+[ -f "$PLUGIN_DIR/skills/harness-init-claude-md/scripts/generate-claude-md.sh" ] && \
+  GENERATE_SH="$PLUGIN_DIR/skills/harness-init-claude-md/scripts/generate-claude-md.sh"
+[ -f "$PLUGIN_DIR/skills/harness-init-claude-md/scripts/claude-md-manifest.tsv" ] && \
+  MANIFEST_TSV="$PLUGIN_DIR/skills/harness-init-claude-md/scripts/claude-md-manifest.tsv"
+[ -f "$PLUGIN_DIR/skills/implement/scripts/check-patterns.sh" ] && \
+  CHECK_SH="$PLUGIN_DIR/skills/implement/scripts/check-patterns.sh"
+# 폴백: 구 scripts/ 위치
+[ -z "$GENERATE_SH" ] && [ -f "$PLUGIN_DIR/scripts/generate-claude-md.sh" ] && \
+  GENERATE_SH="$PLUGIN_DIR/scripts/generate-claude-md.sh"
+[ -z "$MANIFEST_TSV" ] && [ -f "$PLUGIN_DIR/scripts/claude-md-manifest.tsv" ] && \
+  MANIFEST_TSV="$PLUGIN_DIR/scripts/claude-md-manifest.tsv"
+[ -z "$CHECK_SH" ] && [ -f "$PLUGIN_DIR/scripts/check-patterns.sh" ] && \
+  CHECK_SH="$PLUGIN_DIR/scripts/check-patterns.sh"
+
+[ -n "$GENERATE_SH" ] && cp "$GENERATE_SH" "$CLAUDE_DIR/scripts/generate-claude-md.sh" && \
   chmod +x "$CLAUDE_DIR/scripts/generate-claude-md.sh" && \
   echo -e "  ${GREEN}✓${RESET} scripts/generate-claude-md.sh" || true
-[ -f "$PLUGIN_DIR/scripts/claude-md-manifest.tsv" ] && \
-  cp "$PLUGIN_DIR/scripts/claude-md-manifest.tsv" "$CLAUDE_DIR/scripts/" || true
+[ -n "$MANIFEST_TSV" ] && cp "$MANIFEST_TSV" "$CLAUDE_DIR/scripts/claude-md-manifest.tsv" || true
+[ -n "$CHECK_SH" ] && cp "$CHECK_SH" "$CLAUDE_DIR/scripts/check-patterns.sh" && \
+  chmod +x "$CLAUDE_DIR/scripts/check-patterns.sh" || true
 
 # Hooks
 for hook in harness-session-start harness-pre-bash-guard harness-pre-impact-check harness-post-ui-check harness-claude-md-lint harness-session-stop harness-pre-compact; do

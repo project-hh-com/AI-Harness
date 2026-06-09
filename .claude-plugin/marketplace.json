@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "ai-harness",
+  "description": "Universal multi-agent development pipeline for Claude Code. One /implement command runs planning, coding, 6-gate QA, and Draft PR creation — works with any framework.",
+  "owner": {
+    "name": "AI-Harness",
+    "email": "dahee86686@gmail.com"
+  },
+  "version": "1.0.0",
+  "metadata": {
+    "pluginRoot": "./plugin"
+  },
+  "plugins": [
+    {
+      "name": "ai-harness",
+      "displayName": "AI-Harness · Universal Multi-Agent Pipeline",
+      "source": "./plugin",
+      "description": "9-agent pipeline: natural language → planning → code → 6-gate QA → Draft PR. Framework-agnostic: Next.js, React Native, Python, Go, Rust, Java, and more.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AI-Harness",
+        "email": "dahee86686@gmail.com"
+      },
+      "homepage": "https://github.com/hwangdahee/ai-harness",
+      "repository": "https://github.com/hwangdahee/ai-harness",
+      "license": "MIT",
+      "category": "workflow",
+      "keywords": [
+        "multi-agent",
+        "pipeline",
+        "qa",
+        "planning",
+        "code-review",
+        "universal",
+        "framework-agnostic",
+        "tdad",
+        "impact-radius",
+        "nextjs",
+        "react-native",
+        "python",
+        "go",
+        "rust"
+      ]
+    }
+  ]
+}

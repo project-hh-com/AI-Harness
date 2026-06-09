@@ -3,21 +3,26 @@
   "name": "ai-harness",
   "displayName": "AI-Harness · Universal Multi-Agent Pipeline",
   "version": "1.0.0",
-  "description": "Framework-agnostic 9-agent implementation pipeline. One /implement command runs input-refiner→planner→implementer→QA→release automatically. Works with Next.js, React Native, plain Node, Python, Go, and more.",
+  "description": "Framework-agnostic 9-agent pipeline: input-refiner → planner → implementer → QA → release. One /implement command covers planning, coding, 6-gate QA, and Draft PR creation. Works with Next.js, React Native, Python, Go, Rust, Java, and more.",
   "author": {
-    "name": "AI-Harness"
+    "name": "AI-Harness",
+    "email": "dahee86686@gmail.com"
   },
-  "keywords": ["multi-agent", "pipeline", "qa", "code-review", "planning", "universal"],
-  "agents": [
-    "./agents/input-refiner.md",
-    "./agents/planner.md",
-    "./agents/implementer.md",
-    "./agents/functional-qa.md",
-    "./agents/design-qa.md",
-    "./agents/visual-qa.md",
-    "./agents/release.md",
-    "./agents/tracking-implementer.md",
-    "./agents/tracking-qa.md"
+  "homepage": "https://github.com/hwangdahee/ai-harness",
+  "repository": "https://github.com/hwangdahee/ai-harness",
+  "license": "MIT",
+  "keywords": [
+    "multi-agent",
+    "pipeline",
+    "qa",
+    "code-review",
+    "planning",
+    "universal",
+    "framework-agnostic",
+    "tdad",
+    "impact-radius"
   ],
-  "skills": "./skills/"
+  "agents": "agents/",
+  "skills": "skills/",
+  "hooks": "hooks/hooks.json"
 }
