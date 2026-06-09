@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI-Harness · 가이드</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #0d1117;
+      --bg2:       #161b22;
+      --bg3:       #21262d;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --accent:    #58a6ff;
+      --accent2:   #bc8cff;
+      --green:     #3fb950;
+      --yellow:    #d29922;
+      --red:       #f85149;
+      --orange:    #e3b341;
+      --code-bg:   #161b22;
+      --radius:    8px;
+      --nav-w:     240px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    /* ── Layout ── */
+    .layout { display: flex; min-height: 100vh; }
+    nav {
+      width: var(--nav-w);
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 24px 0;
+      z-index: 100;
+    }
+    nav::-webkit-scrollbar { width: 4px; }
+    nav::-webkit-scrollbar-track { background: transparent; }
+    nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    main {
+      margin-left: var(--nav-w);
+      flex: 1;
+      padding: 48px 40px;
+      max-width: 900px;
+    }
+    @media (max-width: 768px) {
+      nav { transform: translateX(-100%); transition: transform .25s; }
+      nav.open { transform: translateX(0); }
+      main { margin-left: 0; padding: 24px 16px; }
+    }
+
+    /* ── Nav ── */
+    .nav-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .nav-logo h1 { font-size: 14px; font-weight: 700; color: var(--accent); letter-spacing: .5px; }
+    .nav-logo p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .nav-section { padding: 4px 20px; font-size: 10px; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--muted); margin: 12px 0 4px; }
+    nav a {
+      display: block; padding: 7px 20px; font-size: 13px;
+      color: var(--muted); text-decoration: none; border-radius: 4px;
+      margin: 1px 8px; transition: all .15s;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    nav a:hover { background: var(--bg3); color: var(--text); }
+    nav a.active { background: rgba(88,166,255,.12); color: var(--accent); font-weight: 500; }
+
+    /* ── Mobile header ── */
+    .mobile-header {
+      display: none; position: sticky; top: 0; z-index: 99;
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      padding: 12px 16px; align-items: center; gap: 12px;
+    }
+    @media (max-width: 768px) { .mobile-header { display: flex; } }
+    .hamburger { background: none; border: none; color: var(--text);
+      cursor: pointer; font-size: 20px; padding: 4px; }
+    .mobile-title { font-size: 14px; font-weight: 600; color: var(--accent); }
+
+    /* ── Overlay ── */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 99; }
+    .overlay.show { display: block; }
+
+    /* ── Section ── */
+    section { margin-bottom: 72px; scroll-margin-top: 32px; }
+    h2 {
+      font-size: 24px; font-weight: 700; color: var(--text);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px; margin-bottom: 24px;
+    }
+    h3 { font-size: 17px; font-weight: 600; margin: 28px 0 12px; color: var(--text); }
+    h4 { font-size: 14px; font-weight: 600; margin: 20px 0 8px; color: var(--accent2); }
+    p { margin-bottom: 12px; color: var(--muted); }
+    p strong, li strong { color: var(--text); }
+    ul, ol { padding-left: 20px; margin-bottom: 12px; color: var(--muted); }
+    li { margin-bottom: 4px; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, rgba(88,166,255,.08) 0%, rgba(188,140,255,.06) 100%);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 40px 36px; margin-bottom: 48px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(88,166,255,.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero h1 { font-size: 32px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+    .hero .subtitle { font-size: 16px; color: var(--muted); margin-bottom: 24px; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    }
+    .badge-blue  { background: rgba(88,166,255,.15);  color: var(--accent); }
+    .badge-green { background: rgba(63,185,80,.15);   color: var(--green); }
+    .badge-purple{ background: rgba(188,140,255,.15); color: var(--accent2); }
+    .badge-orange{ background: rgba(227,179,65,.15);  color: var(--orange); }
+
+    /* ── Code block ── */
+    pre {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 20px;
+      overflow-x: auto; margin: 12px 0 20px; position: relative;
+    }
+    pre::-webkit-scrollbar { height: 4px; }
+    pre::-webkit-scrollbar-thumb { background: var(--border); }
+    code { font-family: var(--mono); font-size: 13px; color: #e6edf3; }
+    p code, li code {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 6px; font-size: 12px; color: var(--accent);
+    }
+    .copy-btn {
+      position: absolute; top: 10px; right: 10px;
+      background: var(--bg3); border: 1px solid var(--border); border-radius: 4px;
+      color: var(--muted); font-size: 11px; padding: 3px 8px;
+      cursor: pointer; transition: all .15s;
+    }
+    .copy-btn:hover { background: var(--border); color: var(--text); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+    /* ── Pipeline diagram ── */
+    .pipeline {
+      display: flex; flex-direction: column; gap: 0;
+      margin: 24px 0;
+    }
+    .pipeline-item {
+      display: flex; align-items: stretch; gap: 0;
+    }
+    .pipeline-connector {
+      display: flex; flex-direction: column; align-items: center;
+      width: 40px; flex-shrink: 0;
+    }
+    .pipeline-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+      z-index: 1;
+    }
+    .pipeline-line { width: 2px; flex: 1; min-height: 12px; }
+    .pipeline-card {
+      flex: 1; background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 18px;
+      margin: 6px 0; cursor: pointer; transition: all .2s;
+      position: relative; overflow: hidden;
+    }
+    .pipeline-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; border-radius: 3px 0 0 3px;
+    }
+    .pipeline-card:hover { border-color: var(--accent); transform: translateX(2px); }
+    .pipeline-card .agent-name {
+      font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px;
+    }
+    .pipeline-card .agent-desc { font-size: 12px; color: var(--muted); }
+    .pipeline-card .agent-badge {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      font-size: 10px; font-weight: 600; padding: 2px 7px;
+      border-radius: 10px;
+    }
+    .pipeline-detail {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 18px;
+      margin: 0 0 6px 48px; display: none; font-size: 12px;
+    }
+    .pipeline-detail.open { display: block; }
+    .pipeline-detail ul { color: var(--muted); }
+
+    /* Colors per agent */
+    .c0 { background: #58a6ff; } .line0 { background: rgba(88,166,255,.3); }
+    .c1 { background: #bc8cff; } .line1 { background: rgba(188,140,255,.3); }
+    .c2 { background: #3fb950; } .line2 { background: rgba(63,185,80,.3); }
+    .c3 { background: #e3b341; } .line3 { background: rgba(227,179,65,.3); }
+    .c4 { background: #f0883e; } .line4 { background: rgba(240,136,62,.3); }
+    .c5 { background: #ff6b6b; } .line5 { background: rgba(255,107,107,.3); }
+    .c6 { background: #79c0ff; } .line6 { background: rgba(121,192,255,.3); }
+    .c7 { background: #a5d6a7; } .line7 { background: rgba(165,214,167,.3); }
+    .c8 { background: #d2a8ff; } .line8 { background: rgba(210,168,255,.3); }
+
+    .b0::before { background: #58a6ff; }
+    .b1::before { background: #bc8cff; }
+    .b2::before { background: #3fb950; }
+    .b3::before { background: #e3b341; }
+    .b4::before { background: #f0883e; }
+    .b5::before { background: #ff6b6b; }
+    .b6::before { background: #79c0ff; }
+    .b7::before { background: #a5d6a7; }
+    .b8::before { background: #d2a8ff; }
+
+    /* ── Gate table ── */
+    .gate-grid {
+      display: grid; grid-template-columns: 1fr;
+      gap: 10px; margin: 16px 0;
+    }
+    .gate-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 20px;
+      display: grid; grid-template-columns: 36px 1fr auto;
+      gap: 12px; align-items: start; transition: border-color .2s;
+    }
+    .gate-card:hover { border-color: var(--accent); }
+    .gate-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+    }
+    .gate-body h4 { font-size: 14px; font-weight: 600; color: var(--text); margin: 0 0 4px; }
+    .gate-body p { font-size: 12px; color: var(--muted); margin: 0; }
+    .gate-severity {
+      font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 10px;
+      white-space: nowrap; align-self: center;
+    }
+    .sev-hard { background: rgba(248,81,73,.15); color: var(--red); }
+    .sev-warn { background: rgba(210,153,34,.15); color: var(--yellow); }
+
+    /* ── Stack table ── */
+    .stack-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+    .stack-table th {
+      background: var(--bg3); color: var(--muted); font-weight: 600;
+      padding: 10px 14px; text-align: left; font-size: 11px;
+      text-transform: uppercase; letter-spacing: .5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .stack-table td {
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      color: var(--muted); vertical-align: top;
+    }
+    .stack-table td:first-child { color: var(--text); font-weight: 500; }
+    .stack-table tr:last-child td { border-bottom: none; }
+    .stack-table tr:hover td { background: var(--bg2); }
+    .tag {
+      display: inline-block; padding: 1px 7px; border-radius: 10px;
+      font-size: 11px; background: var(--bg3); border: 1px solid var(--border);
+      color: var(--muted); margin: 1px 2px;
+    }
+
+    /* ── Command box ── */
+    .cmd-box {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin: 16px 0;
+    }
+    .cmd-header {
+      background: var(--bg3); padding: 8px 16px;
+      font-size: 11px; color: var(--muted); font-family: var(--mono);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .cmd-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .cmd-body { padding: 16px 20px; }
+    .cmd-body code { color: var(--green); font-size: 13px; font-family: var(--mono); }
+    .cmd-body .comment { color: var(--muted); }
+
+    /* ── Alert box ── */
+    .alert {
+      border-radius: var(--radius); padding: 14px 18px;
+      margin: 16px 0; font-size: 13px; display: flex; gap: 12px; align-items: start;
+    }
+    .alert-icon { font-size: 18px; flex-shrink: 0; line-height: 1; }
+    .alert-body p { margin: 0; }
+    .alert-info    { background: rgba(88,166,255,.08);  border: 1px solid rgba(88,166,255,.3); }
+    .alert-warn    { background: rgba(210,153,34,.08);  border: 1px solid rgba(210,153,34,.3); }
+    .alert-danger  { background: rgba(248,81,73,.08);   border: 1px solid rgba(248,81,73,.3); }
+    .alert-success { background: rgba(63,185,80,.08);   border: 1px solid rgba(63,185,80,.3); }
+
+    /* ── Files tree ── */
+    .tree {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 20px;
+      font-family: var(--mono); font-size: 12.5px; line-height: 1.8;
+    }
+    .tree .dir  { color: var(--accent); }
+    .tree .file { color: var(--muted); }
+    .tree .note { color: var(--green); }
+
+    /* ── Step cards ── */
+    .steps { display: flex; flex-direction: column; gap: 0; margin: 20px 0; }
+    .step {
+      display: flex; gap: 16px; padding: 0 0 24px;
+      position: relative;
+    }
+    .step::before {
+      content: ''; position: absolute; left: 20px; top: 42px; bottom: 0;
+      width: 2px; background: var(--border);
+    }
+    .step:last-child::before { display: none; }
+    .step-num {
+      width: 40px; height: 40px; border-radius: 50%; background: var(--bg3);
+      border: 2px solid var(--border); display: flex; align-items: center;
+      justify-content: center; font-weight: 700; font-size: 14px;
+      color: var(--accent); flex-shrink: 0; z-index: 1;
+    }
+    .step-content { flex: 1; padding-top: 8px; }
+    .step-content h4 { font-size: 15px; font-weight: 600; color: var(--text); margin: 0 0 6px; }
+    .step-content p { font-size: 13px; color: var(--muted); margin: 0 0 8px; }
+
+    /* ── TOC progress ── */
+    .toc-progress {
+      position: fixed; top: 0; left: 0;
+      height: 3px; background: var(--accent); transition: width .1s;
+      z-index: 200;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Divider ── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+    /* ── Responsive table wrapper ── */
+    .table-wrap { overflow-x: auto; }
+  </style>
+</head>
+<body>
+
+<div class="toc-progress" id="progress"></div>
+
+<!-- Mobile header -->
+<div class="mobile-header">
+  <button class="hamburger" id="menuBtn" aria-label="메뉴">☰</button>
+  <span class="mobile-title">AI-Harness 가이드</span>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="layout">
+  <!-- Nav -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <h1>AI-Harness</h1>
+      <p>Universal Multi-Agent Pipeline</p>
+    </div>
+    <div class="nav-section">시작하기</div>
+    <a href="#overview"   class="nav-link">개요</a>
+    <a href="#install"    class="nav-link">설치</a>
+    <a href="#quickstart" class="nav-link">빠른 시작</a>
+
+    <div class="nav-section">파이프라인</div>
+    <a href="#pipeline"   class="nav-link">9개 에이전트 흐름</a>
+    <a href="#qa-gates"   class="nav-link">QA 게이트 (6단계)</a>
+    <a href="#quality"    class="nav-link">코드 품질 보장</a>
+    <a href="#impact"     class="nav-link">Impact Radius QA</a>
+
+    <div class="nav-section">설정</div>
+    <a href="#stacks"     class="nav-link">지원 스택</a>
+    <a href="#hooks"      class="nav-link">훅 & 가드레일</a>
+    <a href="#claude-md"  class="nav-link">CLAUDE.md 생성</a>
+    <a href="#protected"  class="nav-link">보호 파일 & 브랜치</a>
+
+    <div class="nav-section">레퍼런스</div>
+    <a href="#files"      class="nav-link">설치 구조</a>
+    <a href="#commands"   class="nav-link">명령어 레퍼런스</a>
+    <a href="#troubleshoot" class="nav-link">트러블슈팅</a>
+  </nav>
+
+  <!-- Main -->
+  <main>
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1>AI-Harness</h1>
+      <p class="subtitle">자연어 한 줄 → 9개 에이전트 자동 실행 → Draft PR<br>
+        어떤 프레임워크도, 어떤 언어도 지원합니다.</p>
+      <div class="badge-row">
+        <span class="badge badge-blue">9-Agent Pipeline</span>
+        <span class="badge badge-green">6-Gate QA</span>
+        <span class="badge badge-purple">Impact Radius Check</span>
+        <span class="badge badge-orange">Framework-Agnostic</span>
+      </div>
+    </div>
+
+    <!-- ── 개요 ── -->
+    <section id="overview">
+      <h2>개요</h2>
+      <p>AI-Harness는 Claude Code 위에서 동작하는 <strong>멀티 에이전트 개발 파이프라인</strong>입니다.
+        사용자가 자연어로 작업을 입력하면 9개의 전문화된 에이전트가 순서대로 실행되어
+        기획 → 구현 → QA → PR 생성까지 자동으로 처리합니다.</p>
+
+      <h3>왜 AI-Harness인가</h3>
+      <div class="gate-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+        <div class="gate-card" style="grid-template-columns:1fr;">
+          <div style="font-size:24px;margin-bottom:8px">🎯</div>
+          <h4 style="color:var(--text);margin:0 0 4px">단일 명령</h4>
+          <p style="font-size:12px;color:var(--muted);margin:0"><code>/implement</code> 한 줄로 전체 파이프라인 실행</p>
+        </div>
+        <div class="gate-card" style="grid-template-columns:1fr;">
+          <div style="font-size:24px;margin-bottom:8px">🔒</div>
+          <h4 style="color:var(--text);margin:0 0 4px">6단계 QA 게이트</h4>
+          <p style="font-size:12px;color:var(--muted);margin:0">Lint → Type → Pattern → TDAD → Complexity → Impact Radius</p>
+        </div>
+        <div class="gate-card" style="grid-template-columns:1fr;">
+          <div style="font-size:24px;margin-bottom:8px">📡</div>
+          <h4 style="color:var(--text);margin:0 0 4px">영향 반경 검증</h4>
+          <p style="font-size:12px;color:var(--muted);margin:0">변경 모듈을 import하는 모든 파일까지 무한호출·캐시충돌 탐지</p>
+        </div>
+        <div class="gate-card" style="grid-template-columns:1fr;">
+          <div style="font-size:24px;margin-bottom:8px">🌐</div>
+          <h4 style="color:var(--text);margin:0 0 4px">범용 스택</h4>
+          <p style="font-size:12px;color:var(--muted);margin:0">Next.js, React Native, Python, Go, Rust, Java — 자동 감지</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 설치 ── -->
+    <section id="install">
+      <h2>설치</h2>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>install.sh 실행</h4>
+            <p>대상 프로젝트 루트에서 실행합니다. <code>project_type</code>을 자동 감지해 맞는 도구 설정을 적용합니다.</p>
+            <div class="cmd-box">
+              <div class="cmd-header">
+                <div class="cmd-dot" style="background:#ff5f57"></div>
+                <div class="cmd-dot" style="background:#febc2e"></div>
+                <div class="cmd-dot" style="background:#28c840"></div>
+                Terminal
+              </div>
+              <div class="cmd-body">
+                <code>
+                  <span class="comment"># 현재 디렉토리에 설치</span><br>
+                  bash /path/to/dev-agent/install/install.sh<br><br>
+                  <span class="comment"># 또는 경로 지정</span><br>
+                  bash /path/to/dev-agent/install/install.sh /path/to/your-project
+                </code>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Claude Code 재시작</h4>
+            <p>스킬은 세션 시작 시 스캔됩니다. Claude Code를 재시작해야 <code>/implement</code> 명령이 활성화됩니다.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>CLAUDE.md 생성 (권장)</h4>
+            <p>프로젝트 구조를 분석해 레이어별 <code>CLAUDE.md</code>를 자동 생성합니다.
+              에이전트들이 이 파일을 참조해 프로젝트 패턴을 학습합니다.</p>
+            <div class="cmd-box">
+              <div class="cmd-header">
+                <div class="cmd-dot" style="background:#ff5f57"></div>
+                <div class="cmd-dot" style="background:#febc2e"></div>
+                <div class="cmd-dot" style="background:#28c840"></div>
+                Claude Code
+              </div>
+              <div class="cmd-body"><code>/harness-init-claude-md</code></div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>첫 작업 실행</h4>
+            <p>자연어로 작업을 설명하면 파이프라인이 자동 실행됩니다.</p>
+            <div class="cmd-box">
+              <div class="cmd-header">
+                <div class="cmd-dot" style="background:#ff5f57"></div>
+                <div class="cmd-dot" style="background:#febc2e"></div>
+                <div class="cmd-dot" style="background:#28c840"></div>
+                Claude Code
+              </div>
+              <div class="cmd-body"><code>/implement 사용자 프로필에 아바타 업로드 기능 추가</code></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3>설치 옵션</h3>
+      <div class="table-wrap">
+        <table class="stack-table">
+          <thead><tr><th>옵션</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td><code>install.sh</code></td><td>현재 디렉토리에 설치</td></tr>
+            <tr><td><code>install.sh /path</code></td><td>지정 경로에 설치</td></tr>
+            <tr><td><code>install.sh --uninstall [경로]</code></td><td>AI-Harness 파일만 제거 (기존 자산 보존)</td></tr>
+            <tr><td><code>install.sh --update [경로]</code></td><td>백업 없이 덮어쓰기</td></tr>
+            <tr><td><code>install.sh --help</code></td><td>도움말 출력</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert alert-info">
+        <div class="alert-icon">ℹ️</div>
+        <div class="alert-body"><p>설치 시 기존 <code>.claude/agents</code> · <code>skills</code> · <code>rules</code> · <code>hooks</code>는
+          <code>_backup_&lt;timestamp&gt;/</code>로 자동 백업됩니다. 롤백이 필요하면 백업 디렉토리에서 복구하세요.</p></div>
+      </div>
+    </section>
+
+    <!-- ── 빠른 시작 ── -->
+    <section id="quickstart">
+      <h2>빠른 시작</h2>
+
+      <h3>기본 사용법</h3>
+      <div class="cmd-box">
+        <div class="cmd-header">
+          <div class="cmd-dot" style="background:#ff5f57"></div>
+          <div class="cmd-dot" style="background:#febc2e"></div>
+          <div class="cmd-dot" style="background:#28c840"></div>
+          Claude Code
+        </div>
+        <div class="cmd-body">
+          <code>
+            <span class="comment"># 새 기능 추가</span><br>
+            /implement 사용자 프로필 페이지에 아바타 업로드 기능 추가<br><br>
+            <span class="comment"># Figma 디자인 포함</span><br>
+            /implement 결제 버튼 디자인 변경<br>
+            Figma: https://www.figma.com/design/xxx/?node-id=172:61<br><br>
+            <span class="comment"># 버그 수정</span><br>
+            /implement login page password reset button not working<br>
+            area=src/pages/auth type=bugfix<br><br>
+            <span class="comment"># 성능 최적화</span><br>
+            /implement 상품 목록 페이지 초기 로딩 3초 → 1초 이내로 개선
+          </code>
+        </div>
+      </div>
+
+      <h3>실행 진행 출력 예시</h3>
+      <pre><code>[AI-Harness] /implement 시작 — avatar-upload
+  Agent 0 · input-refiner ✅  (project_type: nextjs)
+  Agent 1 · planner       ✅  (waves: 3, complexity: MEDIUM)
+  Agent 2 · implementer   ⟳   wave 1/3
+  Agent 3 · functional-qa ✅  Gate 1~6 all pass
+  Agent 2 · implementer   ⟳   wave 2/3
+  Agent 3 · functional-qa ❌  Gate 6 · SWR 캐시 키 인라인 객체 위반
+  Agent 2 · implementer   ⟳   wave 2/3 (재시도)
+  Agent 3 · functional-qa ✅
+  Agent 2 · implementer   ⟳   wave 3/3
+  Agent 3 · functional-qa ✅
+  Agent 4 · design-qa     ✅
+  Agent 5 · visual-qa     ✅
+  Agent 8 · release       ✅
+[AI-Harness] 완료 — Draft PR: https://github.com/org/repo/pull/42</code></pre>
+    </section>
+
+    <!-- ── 파이프라인 ── -->
+    <section id="pipeline">
+      <h2>9개 에이전트 흐름</h2>
+      <p>각 에이전트를 클릭하면 상세 역할을 확인할 수 있습니다.</p>
+
+      <div class="pipeline" id="pipelineEl">
+
+        <div class="pipeline-item">
+          <div class="pipeline-connector">
+            <div class="pipeline-dot c0" style="color:#0d1117">0</div>
+            <div class="pipeline-line line0"></div>
+          </div>
+          <div class="pipeline-card b0" onclick="toggleDetail(this)">
+            <div class="agent-name">input-refiner</div>
+            <div class="agent-desc">자연어 input → 표준 YAML input 정제 + project_type 감지</div>
+            <div class="agent-badge" style="background:rgba(88,166,255,.15);color:#58a6ff">Agent 0</div>
+          </div>
+        </div>
+        <div class="pipeline-detail">
+          <ul>
+            <li>자연어 input의 모호한 표현을 구조화된 YAML로 변환</li>
+            <li><code>project_type</code> 자동 감지 (package.json / go.mod / Cargo.toml 등)</li>
+            <li><code>confidence &lt; medium</code>이면 사용자에게 명확화 질문 제시</li>
+            <li>출력: <code>.claude/refined-inputs/&lt;task&gt;.md</code></li>
+          </ul>
+        </div>
+
+        <div class="pipeline-item">
+          <div class="pipeline-connector">
+            <div class="pipeline-dot c1" style="color:#0d1117">1</div>
+            <div class="pipeline-line line1"></div>
+          </div>
+          <div class="pipeline-card b1" onclick="toggleDetail(this)">
+            <div class="agent-name">planner <span style="font-size:11px;color:var(--muted)">(Opus)</span></div>
+            <div class="agent-desc">11 steps 분석 → 영향 파일 · 분기 매트릭스 · Wave 계획 작성</div>
+            <div class="agent-badge" style="background:rgba(188,140,255,.15);color:#bc8cff">Agent 1</div>
+          </div>
+        </div>
+        <div class="pipeline-detail">
+          <ul>
+            <li>11 steps: input 파싱 → 코드 탐색 → 사이드이펙트 분석 → 분기 매트릭스 → Wave 분할</li>
+            <li>복잡도 분류 (LOW/MEDIUM/HIGH) → MEDIUM 이상은 <code>static_quality_constraints</code> 추가</li>
+            <li><strong>TDAD</strong>: 실패하는 테스트를 먼저 작성 (버그수정·새기능·리팩토링)</li>
+            <li>고위험 모듈 플래그 (공유 훅·전역 스토어·API 클라이언트)</li>
+            <li>출력: <code>.claude/plans/&lt;task&gt;.md</code> (R1~R11)</li>
+          </ul>
+        </div>
+
+        <div class="pipeline-item">
+          <div class="pipeline-connector">
+            <div class="pipeline-dot c2" style="color:#0d1117">2</div>
+            <div class="pipeline-line line2"></div>
+          </div>
+          <div class="pipeline-card b2" onclick="toggleDetail(this)">
+            <div class="agent-name">implementer <span style="font-size:11px;color:var(--muted)">(Sonnet S2 long-lived)</span></div>
+            <div class="agent-desc">Wave 단위 코드 작성 · Pre-constraint injection · 보호 파일 편집 금지</div>
+            <div class="agent-badge" style="background:rgba(63,185,80,.15);color:#3fb950">Agent 2</div>
+          </div>
+        </div>
+        <div class="pipeline-detail">
+          <ul>
+            <li><strong>Pre-implementation Constraint Injection</strong>: 코드 작성 전 구조 제약 내재화 (함수 ≤20줄, 중첩 ≤3단계 등)</li>
+            <li>Wave 단위 진행 + checkpoint commit (plan R11 기준)</li>
+            <li>TDAD 테스트를 통과시키는 것이 완료 정의</li>
+            <li>보호 파일 편집 시 즉시 중단 + 사용자 보고</li>
+            <li>functional-qa fail 시 같은 세션으로 재진입 (S2 long-lived)</li>
+          </ul>
+        </div>
+
+        <div class="pipeline-item">
+          <div class="pipeline-connector">
+            <div class="pipeline-dot c3" style="color:#0d1117">3</div>
+            <div class="pipeline-line line3"></div>
+          </div>
+          <div class="pipeline-card b3" onclick="toggleDetail(this)">
+            <div class="agent-name">functional-qa <span style="font-size:11px;color:var(--muted)">(Haiku)</span></div>
+            <div class="agent-desc">6개 게이트 정적 검증 · 영향 반경 탐색 · 매 wave 후 실행</div>
+            <div class="agent-badge" style="background:rgba(227,179,65,.15);color:#e3b341">Agent 3</div>
+          </div>
+        </div>
+        <div class="pipeline-detail">
+          <ul>
+            <li>Gate 1: Lint (project_type별 자동 명령 선택)</li>
+            <li>Gate 2: Type Check (tsc / mypy / go vet / cargo check)</li>
+            <li>Gate 3: Pattern Check (금지 패턴 grep + 커스텀 패턴)</li>
+            <li>Gate 4: TDAD Test (planner가 작성한 실패 테스트 통과 확인)</li>
+            <li>Gate 5: Static Complexity (함수 길이·중첩 깊이·파라미터 수)</li>
+            <li>Gate 6: Impact Radius (importer 탐색 + 무한호출·캐시충돌·인터셉터 중복 감지)</li>
+          </ul>
+        </div>
+
+        <div class="pipeline-item">
+          <div class="pipeline-connector">
+            <div class="pipeline-dot c4" style="color:#0d1117">4</div>
+            <div class="pipeline-line line4"></div>
+          </div>
+          <div class="pipeline-card b4" onclick="toggleDetail(this)">
+            <div class="agent-name">design-qa <span style="font-size:11px;color:var(--muted)">(조건부)</span></div>
+            <div class="agent-desc">Figma 4축 검증 — 토큰·매핑·접근성·반응형</div>
+            <div class="agent-badge" style="background:rgba(240,136,62,.15);color:#f0883e">Agent 4</div>
+          </div>
+        </div>
+        <div class="pipeline-detail">
+          <ul>
+            <li>plan에 Figma URL(R3)이 있을 때만 실행 (없으면 skip)</li>
+            <li>A축: 디자인 토큰 정확 매칭 (자동 fix)</li>
+            <li>B축: 컴포넌트 매핑 검증</li>
+            <li>C축: 접근성 (aria, contrast ratio)</li>
+            <li>D축: 반응형 브레이크포인트</li>
+          </ul>
+        </div>
+
+        <div class="pipeline-item">
+          <div class="pipeline-connector">
+            <div class="pipeline-dot c5" style="color:#fff">5</div>
+            <div class="pipeline-line line5"></div>
+          </div>
+          <div class="pipeline-card b5" onclick="toggleDetail(this)">
+            <div class="agent-name">visual-qa <span style="font-size:11px;color:var(--muted)">(조건부)</span></div>
+            <div class="agent-desc">Storybook / Playwright 스냅샷 회귀 검증</div>
+            <div class="agent-badge" style="background:rgba(255,107,107,.15);color:#ff6b6b">Agent 5</div>
+          </div>
+        </div>
+        <div class="pipeline-detail">
+          <ul>
+            <li>도구 자동 감지: Storybook → Playwright → jest-snapshot → pytest-screenshot</li>
+            <li>design-qa가 skip이면 함께 skip</li>
+            <li>픽셀 diff 임계값 초과 시 fail → implementer 재진입</li>
+          </ul>
+        </div>
+
+        <div class="pipeline-item">
+          <div class="pipeline-connector">
+            <div class="pipeline-dot c6" style="color:#0d1117">6</div>
+            <div class="pipeline-line line6"></div>
+          </div>
+          <div class="pipeline-card b6" onclick="toggleDetail(this)">
+            <div class="agent-name">tracking-implementer <span style="font-size:11px;color:var(--muted)">(조건부)</span></div>
+            <div class="agent-desc">TRACK 주석 마커를 실제 트래커 호출로 치환</div>
+            <div class="agent-badge" style="background:rgba(121,192,255,.15);color:#79c0ff">Agent 6</div>
+          </div>
+        </div>
+        <div class="pipeline-detail">
+          <ul>
+            <li>plan R8 (트래킹 계획)이 있을 때만 실행</li>
+            <li>외부 SDK 직접 호출 금지 — 프로젝트 기존 래퍼 함수 탐색 후 사용</li>
+            <li>래퍼 없으면 TODO 주석으로 대체</li>
+          </ul>
+        </div>
+
+        <div class="pipeline-item">
+          <div class="pipeline-connector">
+            <div class="pipeline-dot c7" style="color:#0d1117">7</div>
+            <div class="pipeline-line line7"></div>
+          </div>
+          <div class="pipeline-card b7" onclick="toggleDetail(this)">
+            <div class="agent-name">tracking-qa <span style="font-size:11px;color:var(--muted)">(조건부)</span></div>
+            <div class="agent-desc">외부 SDK 신규 호출 0 · 미번역 TRACK 마커 · 회귀 검증</div>
+            <div class="agent-badge" style="background:rgba(165,214,167,.15);color:#a5d6a7">Agent 7</div>
+          </div>
+        </div>
+        <div class="pipeline-detail">
+          <ul>
+            <li>tracking-implementer가 skip이면 함께 skip</li>
+            <li>새로운 외부 SDK import 0건 강제</li>
+            <li>TRACK 주석 마커 미치환 = fail</li>
+          </ul>
+        </div>
+
+        <div class="pipeline-item">
+          <div class="pipeline-connector">
+            <div class="pipeline-dot c8" style="color:#0d1117">8</div>
+            <div class="pipeline-line" style="display:none"></div>
+          </div>
+          <div class="pipeline-card b8" onclick="toggleDetail(this)">
+            <div class="agent-name">release</div>
+            <div class="agent-desc">Draft PR 생성 · 보호 브랜치 검증 · 자기강화 신호 추출</div>
+            <div class="agent-badge" style="background:rgba(210,168,255,.15);color:#d2a8ff">Agent 8</div>
+          </div>
+        </div>
+        <div class="pipeline-detail">
+          <ul>
+            <li>베이스 브랜치 자동 감지: <code>develop → alpha → beta → staging → dev</code></li>
+            <li><code>main</code> / <code>master</code> / <code>prd</code> / <code>production</code> 타겟 영구 금지</li>
+            <li>항상 Draft PR로 생성 (human review 보장)</li>
+            <li>QA 실패 패턴 → <code>project-patterns.md</code> 자기강화 등록</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── QA 게이트 ── -->
+    <section id="qa-gates">
+      <h2>QA 게이트 (6단계)</h2>
+      <p>모든 wave가 완료된 후 6개 게이트를 순서대로 통과해야 합니다.
+        어느 게이트라도 fail이면 implementer가 재진입합니다.</p>
+
+      <div class="gate-grid">
+        <div class="gate-card">
+          <div class="gate-num" style="background:rgba(88,166,255,.15);color:#58a6ff">1</div>
+          <div class="gate-body">
+            <h4>Lint</h4>
+            <p>project_type에 따라 자동으로 lint 명령 선택. ESLint / ruff / golangci-lint / cargo clippy 등</p>
+          </div>
+          <span class="gate-severity sev-hard">Hard fail</span>
+        </div>
+        <div class="gate-card">
+          <div class="gate-num" style="background:rgba(188,140,255,.15);color:#bc8cff">2</div>
+          <div class="gate-body">
+            <h4>Type Check</h4>
+            <p><code>tsc --noEmit</code> · <code>mypy</code> · <code>go vet</code> · <code>cargo check</code> · <code>mvn compile</code></p>
+          </div>
+          <span class="gate-severity sev-hard">Hard fail</span>
+        </div>
+        <div class="gate-card">
+          <div class="gate-num" style="background:rgba(63,185,80,.15);color:#3fb950">3</div>
+          <div class="gate-body">
+            <h4>Pattern Check</h4>
+            <p>console.log · 직접 axios import · wildcard import · naked panic 등 공통 금지 패턴 + 프로젝트 커스텀 패턴</p>
+          </div>
+          <span class="gate-severity sev-hard">Hard fail</span>
+        </div>
+        <div class="gate-card">
+          <div class="gate-num" style="background:rgba(227,179,65,.15);color:#e3b341">4</div>
+          <div class="gate-body">
+            <h4>TDAD Test</h4>
+            <p>planner가 구현 전에 작성한 실패 테스트를 통과시켜야 완료. 버그수정·새기능·리팩토링에 필수.</p>
+          </div>
+          <span class="gate-severity sev-hard">Hard fail</span>
+        </div>
+        <div class="gate-card">
+          <div class="gate-num" style="background:rgba(240,136,62,.15);color:#f0883e">5</div>
+          <div class="gate-body">
+            <h4>Static Complexity</h4>
+            <p>함수 ≤20줄 · 중첩 ≤3단계 · 파라미터 ≤3개. MEDIUM/HIGH 복잡도 태스크에만 적용. (LOW = skip)</p>
+          </div>
+          <span class="gate-severity sev-hard">Hard fail</span>
+        </div>
+        <div class="gate-card" style="border-color:rgba(248,81,73,.3)">
+          <div class="gate-num" style="background:rgba(248,81,73,.15);color:#f85149">6</div>
+          <div class="gate-body">
+            <h4>Impact Radius QA</h4>
+            <p>변경 파일을 import하는 모든 파일 자동 탐색. 무한 호출·캐시 키 충돌·인터셉터 중복·조건부 훅 호출을 탐지.</p>
+          </div>
+          <span class="gate-severity sev-hard">Hard fail</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 코드 품질 ── -->
+    <section id="quality">
+      <h2>코드 품질 보장 (98점 목표)</h2>
+
+      <div class="alert alert-info">
+        <div class="alert-icon">📊</div>
+        <div class="alert-body">
+          <p><strong>연구 근거</strong>: 순환복잡도와 코드 스멜 수의 Spearman 상관계수 <strong>ρ=0.94</strong>.
+            OOP/복잡 태스크에서 스멜이 불균형 증가 (평균 +63%, OOP 주제 +138%).
+            Pass@1과 정적 분석 점수는 상관없음 — 별도 게이트 필수.</p>
+        </div>
+      </div>
+
+      <h3>두 가지 핵심 전략</h3>
+
+      <h4>1. Pre-implementation Constraint Injection</h4>
+      <p>implementer가 코드를 <strong>한 줄도 쓰기 전에</strong> 구조적 제약을 시스템 규칙으로 내재화합니다.
+        사후 교정이 아닌 사전 차단으로 위반을 근본적으로 방지합니다.</p>
+
+      <pre><code>HARD LIMITS (구현 전 내재화)
+  ┌─────────────────────────────────────────────────────────┐
+  │ 함수/메서드 ≤ 20줄   →  초과 즉시 helper 함수로 추출  │
+  │ 중첩 깊이 ≤ 3단계   →  guard clause 패턴 사용         │
+  │ 파라미터 ≤ 3개      →  초과 시 options 객체로 묶기    │
+  │ JSX ≥ 20줄          →  서브 컴포넌트로 추출            │
+  │ console.log 금지    →  logger 또는 제거                │
+  └─────────────────────────────────────────────────────────┘</code></pre>
+
+      <h4>2. TDAD (Test-Driven AI Development)</h4>
+      <p>planner가 구현 전 실패하는 테스트를 먼저 작성합니다. implementer는 이 테스트를 통과시키는 것이 완료 정의입니다.</p>
+
+      <div class="table-wrap">
+        <table class="stack-table">
+          <thead><tr><th>작업 유형</th><th>TDAD</th><th>비고</th></tr></thead>
+          <tbody>
+            <tr><td>버그 수정</td><td><span style="color:var(--green)">● 필수</span></td><td>재현 테스트 = 명세</td></tr>
+            <tr><td>새 기능</td><td><span style="color:var(--green)">● 필수</span></td><td>모든 분기 케이스 강제</td></tr>
+            <tr><td>리팩토링</td><td><span style="color:var(--green)">● 필수</span></td><td>동작 보존 safety net</td></tr>
+            <tr><td>성능 최적화</td><td><span style="color:var(--green)">● 필수</span></td><td>회귀 방지</td></tr>
+            <tr><td>디자인 변경</td><td><span style="color:var(--yellow)">● 조건부</span></td><td>분기 처리 변경 시만</td></tr>
+            <tr><td>워딩 수정</td><td><span style="color:var(--muted)">○ 스킵</span></td><td>—</td></tr>
+            <tr><td>문서/인프라</td><td><span style="color:var(--muted)">○ 스킵</span></td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Impact Radius ── -->
+    <section id="impact">
+      <h2>Impact Radius QA</h2>
+      <p>변경된 파일만 검증하면 충분하지 않습니다.
+        SWR 훅, 전역 스토어, API 클라이언트처럼 여러 파일에서 공유하는 모듈을 수정하면
+        직접 수정한 파일은 테스트를 통과해도 <strong>import하는 다른 파일에서 버그가 발생</strong>할 수 있습니다.</p>
+
+      <div class="alert alert-danger">
+        <div class="alert-icon">🔴</div>
+        <div class="alert-body">
+          <p><strong>실제 사례</strong>: SWR 훅에서 캐시 키를 인라인 객체 <code>{`{ id }`}</code>로 넘기면
+            매 렌더마다 새 참조가 생성되어 무한 호출이 발생합니다.
+            훅 파일의 테스트는 통과하지만 이 훅을 사용하는 컴포넌트에서 문제가 터집니다.</p>
+        </div>
+      </div>
+
+      <h3>자동 탐지 항목</h3>
+      <div class="gate-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        <div class="gate-card" style="grid-template-columns:auto 1fr;">
+          <div style="font-size:22px">🔁</div>
+          <div>
+            <h4>무한 호출 (Hard fail)</h4>
+            <p style="font-size:12px;color:var(--muted);margin:0">SWR/React Query 캐시 키에 인라인 객체·배열 → 매 렌더 새 참조 생성</p>
+          </div>
+        </div>
+        <div class="gate-card" style="grid-template-columns:auto 1fr;">
+          <div style="font-size:22px">⚠️</div>
+          <div>
+            <h4>조건부 훅 호출 (Hard fail)</h4>
+            <p style="font-size:12px;color:var(--muted);margin:0"><code>if (cond) useHook()</code> — Rules of Hooks 위반 패턴 자동 감지</p>
+          </div>
+        </div>
+        <div class="gate-card" style="grid-template-columns:auto 1fr;">
+          <div style="font-size:22px">🔗</div>
+          <div>
+            <h4>인터셉터 중복 등록 (Hard fail)</h4>
+            <p style="font-size:12px;color:var(--muted);margin:0">API 클라이언트에 <code>interceptors.use</code> 2회 이상 감지</p>
+          </div>
+        </div>
+        <div class="gate-card" style="grid-template-columns:auto 1fr;">
+          <div style="font-size:22px">🔄</div>
+          <div>
+            <h4>의존성 배열 누락 (Hard fail)</h4>
+            <p style="font-size:12px;color:var(--muted);margin:0">useEffect/useMemo/useCallback에 의존성 배열 없음</p>
+          </div>
+        </div>
+        <div class="gate-card" style="grid-template-columns:auto 1fr;">
+          <div style="font-size:22px">📦</div>
+          <div>
+            <h4>selector 객체 반환 (Warning)</h4>
+            <p style="font-size:12px;color:var(--muted);margin:0">Zustand/Redux selector가 매 호출마다 새 객체 반환 → 불필요한 리렌더</p>
+          </div>
+        </div>
+        <div class="gate-card" style="grid-template-columns:auto 1fr;">
+          <div style="font-size:22px">📡</div>
+          <div>
+            <h4>영향 반경 10개 초과 (Warning)</h4>
+            <p style="font-size:12px;color:var(--muted);margin:0">importer 10개 이상 → 사용자에게 경고 + 계속 진행</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 지원 스택 ── -->
+    <section id="stacks">
+      <h2>지원 스택</h2>
+      <p>설치 시 <code>project_type</code>을 자동 감지해 적합한 도구 설정을 적용합니다.</p>
+
+      <div class="table-wrap">
+        <table class="stack-table">
+          <thead>
+            <tr>
+              <th>스택</th>
+              <th>감지 기준</th>
+              <th>Lint</th>
+              <th>Type</th>
+              <th>Test</th>
+              <th>Build</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Next.js</td>
+              <td><span class="tag">"next" in pkg.json</span></td>
+              <td>next lint</td>
+              <td>tsc</td>
+              <td>jest/vitest</td>
+              <td>next build</td>
+            </tr>
+            <tr>
+              <td>React Native</td>
+              <td><span class="tag">"expo" in pkg.json</span></td>
+              <td>eslint</td>
+              <td>tsc</td>
+              <td>jest</td>
+              <td>expo prebuild</td>
+            </tr>
+            <tr>
+              <td>React</td>
+              <td><span class="tag">"react" in pkg.json</span></td>
+              <td>eslint</td>
+              <td>tsc</td>
+              <td>jest/vitest</td>
+              <td>vite build</td>
+            </tr>
+            <tr>
+              <td>Python</td>
+              <td><span class="tag">pyproject.toml</span></td>
+              <td>ruff/flake8</td>
+              <td>mypy</td>
+              <td>pytest</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>Go</td>
+              <td><span class="tag">go.mod</span></td>
+              <td>golangci-lint</td>
+              <td>go vet</td>
+              <td>go test</td>
+              <td>go build</td>
+            </tr>
+            <tr>
+              <td>Rust</td>
+              <td><span class="tag">Cargo.toml</span></td>
+              <td>cargo clippy</td>
+              <td>cargo check</td>
+              <td>cargo test</td>
+              <td>cargo build</td>
+            </tr>
+            <tr>
+              <td>Java</td>
+              <td><span class="tag">pom.xml</span> <span class="tag">build.gradle</span></td>
+              <td>checkstyle</td>
+              <td>mvn compile</td>
+              <td>mvn test</td>
+              <td>mvn package</td>
+            </tr>
+            <tr>
+              <td>Node</td>
+              <td><span class="tag">package.json</span></td>
+              <td>eslint</td>
+              <td>tsc (선택)</td>
+              <td>jest/vitest</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── 훅 ── -->
+    <section id="hooks">
+      <h2>훅 &amp; 가드레일</h2>
+      <p>7개의 셸 훅이 Claude Code 이벤트에 반응해 자동으로 작동합니다.</p>
+
+      <div class="table-wrap">
+        <table class="stack-table">
+          <thead><tr><th>훅 파일</th><th>트리거</th><th>역할</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>harness-session-start.sh</td>
+              <td>세션 시작</td>
+              <td>project_type 감지, 파이프라인 정책 컨텍스트 주입</td>
+            </tr>
+            <tr>
+              <td>harness-pre-bash-guard.sh</td>
+              <td>Bash 실행 전</td>
+              <td>보호 브랜치 push 차단, --force 차단, .env 커밋 차단, node_modules 편집 차단</td>
+            </tr>
+            <tr>
+              <td>harness-pre-impact-check.sh</td>
+              <td>Edit 실행 전</td>
+              <td>보호 파일 편집 시 승인 요청, 공유 모듈 편집 시 importer 수 경고</td>
+            </tr>
+            <tr>
+              <td>harness-post-ui-check.sh</td>
+              <td>Edit/Write 후</td>
+              <td>console.log · 직접 axios import · wildcard import · process.env 클라이언트 사용 스캔</td>
+            </tr>
+            <tr>
+              <td>harness-claude-md-lint.sh</td>
+              <td>CLAUDE.md 편집 후</td>
+              <td>파일당 130줄 제한 강제</td>
+            </tr>
+            <tr>
+              <td>harness-pre-compact.sh</td>
+              <td>컨텍스트 압축 전</td>
+              <td>현재 작업 상태를 <code>.claude/.session-resume.md</code>에 저장</td>
+            </tr>
+            <tr>
+              <td>harness-session-stop.sh</td>
+              <td>세션 종료</td>
+              <td>QA 실패 패턴 추출 → <code>project-patterns.md</code> 자기강화 신호</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── CLAUDE.md ── -->
+    <section id="claude-md">
+      <h2>CLAUDE.md 생성</h2>
+      <p>AI-Harness는 설치된 프로젝트의 실제 구조를 분석해 레이어별 <code>CLAUDE.md</code>를 자동 생성합니다.
+        에이전트들이 이 파일을 참조해 프로젝트 고유 패턴을 따릅니다.</p>
+
+      <div class="cmd-box">
+        <div class="cmd-header">
+          <div class="cmd-dot" style="background:#ff5f57"></div>
+          <div class="cmd-dot" style="background:#febc2e"></div>
+          <div class="cmd-dot" style="background:#28c840"></div>
+          Claude Code
+        </div>
+        <div class="cmd-body"><code>/harness-init-claude-md</code></div>
+      </div>
+
+      <h3>생성 예시</h3>
+      <div class="tree">
+        <span class="dir">your-project/</span><br>
+        <span class="file">├── CLAUDE.md</span><span class="note">           ← 루트: 전체 TL;DR + 진입 규칙</span><br>
+        <span class="dir">├── src/</span><br>
+        <span class="file">│   ├── components/CLAUDE.md</span><span class="note"> ← 컴포넌트 패턴 + 금지 패턴</span><br>
+        <span class="file">│   ├── hooks/CLAUDE.md</span><span class="note">     ← 훅 작성 규칙 + 의존성 배열 주의사항</span><br>
+        <span class="file">│   ├── services/CLAUDE.md</span><span class="note">  ← API 호출 래퍼 패턴</span><br>
+        <span class="file">│   ├── lib/CLAUDE.md</span><span class="note">       ← 유틸리티 패턴</span><br>
+        <span class="file">│   └── store/CLAUDE.md</span><span class="note">     ← 전역 상태 패턴</span><br>
+        <span class="dir">└── .claude/</span><br>
+        <span class="file">    └── rules/project-patterns.md</span><span class="note"> ← 금지 패턴 등록</span>
+      </div>
+
+      <div class="alert alert-warn">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-body">
+          <p>기존 <code>CLAUDE.md</code>는 덮어쓰지 않습니다. 스켈레톤(TODO 포함)만 AI로 보강합니다.
+            강제 재생성이 필요하면 <code>--force</code> 옵션을 사용하세요.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 보호 ── -->
+    <section id="protected">
+      <h2>보호 파일 &amp; 브랜치</h2>
+
+      <h3>보호 파일 (편집 차단)</h3>
+      <div class="table-wrap">
+        <table class="stack-table">
+          <thead><tr><th>카테고리</th><th>파일 패턴</th></tr></thead>
+          <tbody>
+            <tr><td>프레임워크 설정</td><td><code>next.config.*</code> · <code>vite.config.*</code> · <code>webpack.config.*</code></td></tr>
+            <tr><td>TypeScript 설정</td><td><code>tsconfig.json</code> · <code>tsconfig.*.json</code></td></tr>
+            <tr><td>CI/CD</td><td><code>.github/workflows/**</code> · <code>Dockerfile</code> · <code>docker-compose.*</code></td></tr>
+            <tr><td>패키지 관리</td><td><code>package.json</code> · <code>yarn.lock</code> · <code>package-lock.json</code></td></tr>
+            <tr><td>환경 변수</td><td><code>.env*</code></td></tr>
+            <tr><td>린트 설정</td><td><code>.eslintrc.*</code> · <code>eslint.config.*</code></td></tr>
+            <tr><td>커스텀</td><td><code>.claude/rules/protected-files.md</code>에 추가 등록 가능</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>보호 브랜치</h3>
+      <div class="alert alert-danger">
+        <div class="alert-icon">🚫</div>
+        <div class="alert-body">
+          <p><code>main</code> · <code>master</code> · <code>prd</code> · <code>production</code> 브랜치는
+            직접 push 및 PR 타겟으로 <strong>영구 차단</strong>됩니다.</p>
+          <p>PR 베이스는 <code>develop → alpha → beta → staging → dev</code> 순서로 자동 감지합니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 파일 구조 ── -->
+    <section id="files">
+      <h2>설치 구조</h2>
+
+      <div class="tree">
+        <span class="dir">your-project/.claude/</span><br>
+        <span class="dir">├── agents/</span><span class="note">                 ← 9개 에이전트</span><br>
+        <span class="file">│   ├── input-refiner.md</span><span class="note">    Agent 0</span><br>
+        <span class="file">│   ├── planner.md</span><span class="note">          Agent 1 · Opus</span><br>
+        <span class="file">│   ├── implementer.md</span><span class="note">      Agent 2 · Sonnet S2</span><br>
+        <span class="file">│   ├── functional-qa.md</span><span class="note">    Agent 3 · Haiku · 6게이트</span><br>
+        <span class="file">│   ├── design-qa.md</span><span class="note">        Agent 4 · Figma 4축</span><br>
+        <span class="file">│   ├── visual-qa.md</span><span class="note">        Agent 5 · 스냅샷 회귀</span><br>
+        <span class="file">│   ├── tracking-implementer.md</span><span class="note"> Agent 6</span><br>
+        <span class="file">│   ├── tracking-qa.md</span><span class="note">      Agent 7</span><br>
+        <span class="file">│   └── release.md</span><span class="note">          Agent 8 · Draft PR</span><br>
+        <span class="dir">├── skills/</span><br>
+        <span class="file">│   ├── implement/SKILL.md</span><span class="note">  /implement 명령</span><br>
+        <span class="file">│   └── harness-init-claude-md/SKILL.md</span><span class="note">  /harness-init-claude-md</span><br>
+        <span class="dir">├── rules/</span><br>
+        <span class="file">│   ├── coding-behavior.md</span><span class="note">  Evidence Gate · 행동 원칙</span><br>
+        <span class="file">│   ├── handoff-contract.md</span><span class="note"> 에이전트 간 계약 포맷</span><br>
+        <span class="file">│   ├── protected-files.md</span><span class="note">  보호 파일 목록</span><br>
+        <span class="file">│   └── project-patterns.md</span><span class="note"> 프로젝트 금지 패턴</span><br>
+        <span class="dir">├── hooks/</span><span class="note">                  ← 7개 가드레일</span><br>
+        <span class="file">│   ├── harness-session-start.sh</span><br>
+        <span class="file">│   ├── harness-pre-bash-guard.sh</span><br>
+        <span class="file">│   ├── harness-pre-impact-check.sh</span><br>
+        <span class="file">│   ├── harness-post-ui-check.sh</span><br>
+        <span class="file">│   ├── harness-claude-md-lint.sh</span><br>
+        <span class="file">│   ├── harness-pre-compact.sh</span><br>
+        <span class="file">│   └── harness-session-stop.sh</span><br>
+        <span class="dir">├── scripts/</span><br>
+        <span class="file">│   ├── generate-claude-md.sh</span><br>
+        <span class="file">│   ├── check-patterns.sh</span><br>
+        <span class="file">│   └── claude-md-manifest.tsv</span><br>
+        <span class="dir">├── plans/</span><span class="note">                  ← planner 산출 누적</span><br>
+        <span class="dir">├── refined-inputs/</span><span class="note">         ← input-refiner 산출 누적</span><br>
+        <span class="dir">└── qa-reports/</span><span class="note">             ← QA 리포트 누적</span>
+      </div>
+    </section>
+
+    <!-- ── 명령어 ── -->
+    <section id="commands">
+      <h2>명령어 레퍼런스</h2>
+
+      <h3>/implement</h3>
+      <p>9-에이전트 파이프라인 전체를 실행하는 메인 명령입니다.</p>
+      <pre><code><span style="color:#79c0ff">/implement</span> &lt;자연어 작업 설명 1~5줄&gt;
+
+<span style="color:#8b949e"># 선택 파라미터 (줄바꿈 후 추가)</span>
+Figma: &lt;figma_url&gt;          <span style="color:#8b949e"># 디자인 스펙 URL</span>
+area=&lt;파일_경로&gt;             <span style="color:#8b949e"># 작업 영역 힌트</span>
+type=bugfix|feature|refactor <span style="color:#8b949e"># 작업 유형 힌트</span></code></pre>
+
+      <h3>/harness-init-claude-md</h3>
+      <p>프로젝트 구조를 분석해 레이어별 CLAUDE.md를 생성합니다. 설치 후 한 번 실행을 권장합니다.</p>
+      <pre><code><span style="color:#79c0ff">/harness-init-claude-md</span>
+
+<span style="color:#8b949e"># 또는 셸에서 직접 실행</span>
+bash .claude/scripts/generate-claude-md.sh
+bash .claude/scripts/generate-claude-md.sh --no-ai     <span style="color:#8b949e"># AI 없이 스켈레톤만</span>
+bash .claude/scripts/generate-claude-md.sh --force     <span style="color:#8b949e"># 기존 파일 덮어쓰기</span>
+bash .claude/scripts/generate-claude-md.sh --dry-run   <span style="color:#8b949e"># 생성 대상 미리 확인</span></code></pre>
+
+      <h3>install.sh</h3>
+      <pre><code>bash install.sh                    <span style="color:#8b949e"># 현재 디렉토리에 설치</span>
+bash install.sh /path/to/project   <span style="color:#8b949e"># 지정 경로에 설치</span>
+bash install.sh --uninstall [경로]  <span style="color:#8b949e"># AI-Harness 파일만 제거</span>
+bash install.sh --update [경로]     <span style="color:#8b949e"># 백업 없이 덮어쓰기</span>
+bash install.sh --help              <span style="color:#8b949e"># 도움말</span></code></pre>
+    </section>
+
+    <!-- ── 트러블슈팅 ── -->
+    <section id="troubleshoot">
+      <h2>트러블슈팅</h2>
+
+      <h4>/implement 명령이 자동완성에 안 나옴</h4>
+      <p>Claude Code는 스킬을 세션 시작 시 스캔합니다. Claude Code를 완전히 재시작하세요.</p>
+
+      <h4>에이전트가 호출 안 됨</h4>
+      <p><code>.claude/agents/*.md</code>의 frontmatter <code>name</code> 필드가 파일명과 일치하는지 확인하세요.</p>
+      <pre><code><span style="color:#8b949e">---</span>
+<span style="color:#79c0ff">name</span>: functional-qa   <span style="color:#8b949e"># 파일명: functional-qa.md</span>
+<span style="color:#8b949e">---</span></code></pre>
+
+      <h4>hooks가 작동 안 함</h4>
+      <ul>
+        <li><code>chmod +x .claude/hooks/*.sh</code> 실행 여부 확인</li>
+        <li><code>settings.local.json</code>에 hooks 블록 존재 여부 확인</li>
+        <li>Claude Code 디버그 모드에서 stderr 출력 확인</li>
+      </ul>
+
+      <h4>Gate 6 (Impact Radius) 오탐</h4>
+      <p>grep 기반 간이 탐지라 false positive가 발생할 수 있습니다.
+        <code>.claude/rules/project-patterns.md</code>의 <code>## EXCLUDED</code> 섹션에 제외 패턴을 등록하세요.</p>
+
+      <h4>백업 디렉토리 정리</h4>
+      <pre><code>rm -rf .claude/_backup_*   <span style="color:#8b949e"># 확인 후 삭제</span></code></pre>
+
+      <div class="alert alert-success">
+        <div class="alert-icon">✅</div>
+        <div class="alert-body">
+          <p>문제 해결이 안 되면 <code>--uninstall</code> 후 재설치를 시도하세요.
+            기존 코드 파일은 건드리지 않습니다.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ── Progress bar ──
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.width = (window.scrollY / max * 100) + '%';
+  });
+
+  // ── Active nav link ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  // ── Pipeline detail toggle ──
+  function toggleDetail(card) {
+    const detail = card.closest('.pipeline-item').nextElementSibling;
+    if (!detail || !detail.classList.contains('pipeline-detail')) return;
+    detail.classList.toggle('open');
+    card.style.borderColor = detail.classList.contains('open')
+      ? 'var(--accent)' : 'var(--border)';
+  }
+
+  // ── Copy button ──
+  document.querySelectorAll('pre').forEach(pre => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'copy';
+    btn.onclick = () => {
+      navigator.clipboard.writeText(pre.querySelector('code')?.innerText || '');
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+    };
+    pre.appendChild(btn);
+  });
+
+  // ── Mobile menu ──
+  const menuBtn = document.getElementById('menuBtn');
+  const nav = document.getElementById('nav');
+  const overlay = document.getElementById('overlay');
+  menuBtn.onclick = () => {
+    nav.classList.toggle('open');
+    overlay.classList.toggle('show');
+  };
+  overlay.onclick = () => {
+    nav.classList.remove('open');
+    overlay.classList.remove('show');
+  };
+  navLinks.forEach(l => l.addEventListener('click', () => {
+    nav.classList.remove('open');
+    overlay.classList.remove('show');
+  }));
+</script>
+</body>
+</html>

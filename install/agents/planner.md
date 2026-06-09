@@ -49,6 +49,35 @@ refined-input의 `project_type`으로 이후 단계에서 사용할 명령을 �
 
 plan R9에 이 매핑을 명시해 functional-qa가 올바른 명령을 사용하도록 한다.
 
+## Step 8.3 · 복잡도-품질 제약 계획 (Static Quality Gate Preconditions)
+
+> 연구 근거: 순환복잡도와 코드 스멜 수의 Spearman 상관계수 ρ=0.94. OOP/복잡 태스크에서
+> 스멜이 불균형 증가(평균 +63%, OOP 주제 +138%). Implementer에게 사전 제약을 명시하지
+> 않으면 기능은 통과해도 정적 분석 점수가 낮아진다.
+
+복잡도 분류 기준:
+- **LOW** (단순): 분기 ≤3, 파일 1~2개, 새 클래스 없음
+- **MEDIUM** (복합): 분기 4~6, 파일 3~5개, 또는 새 클래스 1개
+- **HIGH** (복잡): 분기 ≥7, 파일 ≥6개, 새 클래스 ≥2개, 또는 OOP 구조 변경
+
+복잡도가 MEDIUM 이상이면 R9에 다음 **Static Quality Constraints**를 의무 포함:
+
+```yaml
+static_quality_constraints:
+  max_function_lines: 20          # 함수/메서드 최대 20줄
+  max_nesting_depth: 3            # 중첩 깊이 최대 3단계
+  max_params: 3                   # 파라미터 최대 3개 (초과 시 객체로 묶기)
+  max_cyclomatic_complexity: 10   # 순환복잡도 10 이하
+  no_dead_code: true              # 미사용 변수·import·함수 금지
+  no_console_log: true            # 프로덕션 코드 console.log 금지
+  extract_threshold:              # 컴포넌트/함수 추출 임계값
+    jsx_lines: 20                 # JSX 20줄 초과 시 추출
+    logic_lines: 15               # 순수 로직 15줄 초과 시 추출
+```
+
+이 제약은 Implementer가 구현 시 코드를 작성하기 전에 적용해야 할 사전 조건이며,
+functional-qa Gate 3에서 grep·AST로 실측 검증한다.
+
 ## Step 8.5 · TDAD (Test-Driven AI Development) — 실패 테스트 우선 작성
 
 분기 매트릭스(Step 8) 분석 후, 각 분기마다 **현재 코드에서 실패하는 테스트**를 작성한다.
@@ -86,6 +115,20 @@ plan R9에 이 매핑을 명시해 functional-qa가 올바른 명령을 사용�
 ## R2 · Codebase Impact Map               🟢 MUST
 - 진입점 / 수정 / 신규 / 통합·삭제
 - importers/dependents count: N — 🔴HIGH / 🟡MEDIUM / 🟢LOW
+
+**고위험 모듈 플래그** (해당 시 반드시 명시):
+```yaml
+high_risk_modules:
+  - path: <파일 경로>
+    type: hook | store | api-client | context | utility
+    importer_count: <N>
+    risk: infinite-loop | cache-conflict | interceptor-dup | state-mutation
+    reason: "<왜 위험한지 한 줄>"
+```
+
+공유 훅(useXxx)·전역 스토어·API 클라이언트·인터셉터가 변경 범위에 포함되면
+`importer_count ≥ 3`이 아니어도 high_risk_modules에 등재.
+functional-qa Gate 6이 이 목록을 우선 검증한다.
 
 ## R3 · Design Spec                       🟢 MUST (디자인 변경 시) | ⚪ N/A
 - 컴포넌트 노드 ID · 레이아웃 · 스타일 · 텍스트 · 상태

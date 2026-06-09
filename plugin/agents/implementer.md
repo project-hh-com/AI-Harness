@@ -60,6 +60,63 @@ plan R9에 없는 파일 수정이 필요하다고 판단되면 **planner에게 
 plan R9에 TDAD 테스트 파일이 명시돼 있으면 **그 테스트를 통과시키는 것이 완료 정의**.
 추정 금지 — 테스트가 요구하는 분기만 구현하고 프로젝트 test 명령으로 확인.
 
+## Pre-implementation Constraint Injection (plan R9에 static_quality_constraints 있을 때 필수)
+
+코드를 **한 줄도 쓰기 전에** 아래 제약을 시스템 규칙으로 읽고 내재화한다.
+이 단계를 건너뛰면 사후 Gate 5 위반으로 전체 wave 재작성이 발생한다.
+
+```
+HARD LIMITS — 이 기준을 넘는 코드는 작성을 시작하지도 않는다:
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 함수/메서드 ≤ 20줄  →  초과 즉시 helper 함수로 추출       │
+  │ 중첩 깊이 ≤ 3단계  →  guard clause 패턴 사용              │
+  │ 파라미터 ≤ 3개     →  초과 시 options 객체로 묶기         │
+  │ JSX ≥ 20줄         →  서브 컴포넌트로 추출                 │
+  │ console.log 금지   →  logger 또는 제거                     │
+  └─────────────────────────────────────────────────────────────┘
+```
+
+**함수 작성 체크리스트** (각 함수를 저장하기 전):
+1. 줄 수 세기 — 20줄 넘으면 쪼개기
+2. 중첩 확인 — `if { if { if` 3단계 이상이면 guard clause로
+3. 파라미터 수 — 4개 이상이면 객체로
+4. 이 함수가 하는 일이 두 가지 이상인가? — 두 가지면 분리
+
+**few-shot: 올바른 구조 패턴**
+
+```typescript
+// ❌ 위반 — 23줄, 중첩 3단계, 파라미터 4개
+async function processUserData(userId, token, options, callback) {
+  if (userId) {
+    if (token) {
+      const data = await fetch(...)
+      if (data.ok) {
+        const json = await data.json()
+        // ... 15줄 더
+        callback(json)
+      }
+    }
+  }
+}
+
+// ✅ 준수 — guard clause, 함수 분리, options 객체
+async function processUserData({ userId, token, options }: ProcessArgs) {
+  if (!userId || !token) return null
+  const data = await fetchUserData(userId, token)
+  return transformUserData(data, options)
+}
+
+async function fetchUserData(userId: string, token: string) {
+  const res = await fetch(...)
+  if (!res.ok) throw new ApiError(res.status)
+  return res.json()
+}
+
+async function transformUserData(data: RawUser, options: Options) {
+  // ≤ 15줄
+}
+```
+
 ## 코드 작성 원칙
 
 - plan R10 결정(reuse/new/inline)을 그대로 따름. 임의 변경 금지.
