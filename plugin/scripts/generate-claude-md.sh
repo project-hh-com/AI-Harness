@@ -41,24 +41,13 @@ TARGET="$(cd "$TARGET" && pwd)"
 
 [ -f "$MANIFEST" ] || { echo "매니페스트 없음: $MANIFEST" >&2; exit 1; }
 
-# ── 프로젝트 타입 자동 감지 ──────────────────────────────────────────
+# 공유 감지 함수 로드
+# shellcheck source=./detect-project-type.sh
+source "$SCRIPT_DIR/detect-project-type.sh"
+
+# ── 프로젝트 타입 자동 감지 (35+ 스택) ──────────────────────────────
 if [ "$PROJECT_TYPE" = "auto" ]; then
-  if [ -f "$TARGET/package.json" ]; then
-    grep -q '"next"' "$TARGET/package.json" 2>/dev/null && PROJECT_TYPE="nextjs" || true
-    grep -q '"expo"' "$TARGET/package.json" 2>/dev/null && PROJECT_TYPE="react-native" || true
-    [ "$PROJECT_TYPE" = "auto" ] && grep -q '"react"' "$TARGET/package.json" 2>/dev/null && PROJECT_TYPE="react" || true
-    [ "$PROJECT_TYPE" = "auto" ] && PROJECT_TYPE="node"
-  elif [ -f "$TARGET/pyproject.toml" ] || [ -f "$TARGET/setup.py" ]; then
-    PROJECT_TYPE="python"
-  elif [ -f "$TARGET/go.mod" ]; then
-    PROJECT_TYPE="go"
-  elif [ -f "$TARGET/Cargo.toml" ]; then
-    PROJECT_TYPE="rust"
-  elif [ -f "$TARGET/pom.xml" ] || [ -f "$TARGET/build.gradle" ]; then
-    PROJECT_TYPE="java"
-  else
-    PROJECT_TYPE="generic"
-  fi
+  PROJECT_TYPE=$(detect_project_type "$TARGET")
 fi
 
 echo "감지된 project_type: $PROJECT_TYPE"

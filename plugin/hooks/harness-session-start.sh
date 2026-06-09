@@ -6,28 +6,19 @@
 set -uo pipefail
 
 CLAUDE_DIR="${CLAUDE_DIR:-$(pwd)/.claude}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 공유 감지 함수 로드
+# shellcheck source=../scripts/detect-project-type.sh
+source "$SCRIPT_DIR/../scripts/detect-project-type.sh"
 
 # CLAUDE.md 상태
 ROOT_CLAUDE="없음 ⚠️"
 [ -f "CLAUDE.md" ] && ROOT_CLAUDE="있음"
 CLAUDE_MD_COUNT=$(find . -name CLAUDE.md -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | wc -l | tr -d ' ')
 
-# 프로젝트 타입 감지
-PROJECT_TYPE="unknown"
-if [ -f "package.json" ]; then
-  grep -q '"next"' package.json 2>/dev/null && PROJECT_TYPE="nextjs"
-  grep -q '"expo"' package.json 2>/dev/null && PROJECT_TYPE="react-native"
-  [ "$PROJECT_TYPE" = "unknown" ] && grep -q '"react"' package.json 2>/dev/null && PROJECT_TYPE="react"
-  [ "$PROJECT_TYPE" = "unknown" ] && PROJECT_TYPE="node"
-elif [ -f "pyproject.toml" ] || [ -f "setup.py" ]; then
-  PROJECT_TYPE="python"
-elif [ -f "go.mod" ]; then
-  PROJECT_TYPE="go"
-elif [ -f "Cargo.toml" ]; then
-  PROJECT_TYPE="rust"
-elif [ -f "pom.xml" ] || [ -f "build.gradle" ]; then
-  PROJECT_TYPE="java"
-fi
+# 프로젝트 타입 감지 (35+ 스택)
+PROJECT_TYPE=$(detect_project_type "$(pwd)")
 
 cat <<EOF
 [AI-Harness 활성]
